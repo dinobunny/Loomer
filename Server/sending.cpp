@@ -5,6 +5,7 @@
 #include <QMutex>
 #include <windows.h>
 
+
 QMutex mutex1;
 
 Sending::Sending(server* srv, QObject* parent)
@@ -96,9 +97,6 @@ void Sending::Get_New_Client(QTcpSocket* socket, QList<QTcpSocket*> Sockets_reci
 
     Sockets = Sockets_reciverd;
 
-    for (auto i : Sockets) {
-        qDebug() << i << " ";
-    }
 
     // Отправляем идентификатор новому клиенту
     QString MyIdentifier = QString("mYthEinDeNtIfIcAtOr %1, %2")
@@ -149,10 +147,14 @@ void Sending::sendToSocket(QTcpSocket* socket, const QString& message) {
     out.setVersion(QDataStream::Qt_6_0);
     out << message;
 
+
+
     socket->write(data);
-    if (!socket->waitForBytesWritten()) {
+
+
+    if (!socket->waitForBytesWritten(5000)) {  // Timeout для предотвращения вечного ожидания
         qDebug() << "Error waiting for bytes to be written:" << socket->errorString();
-    } else {
-        qDebug() << "Message sent to socket:" << socket->socketDescriptor() << message;
     }
+
+    QThread::msleep(120);
 }
