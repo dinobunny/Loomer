@@ -99,7 +99,7 @@ void Sending::Get_New_Client(QTcpSocket* socket, QList<QTcpSocket*> Sockets_reci
 
 
     // Отправляем идентификатор новому клиенту
-    QString MyIdentifier = QString("mYthEinDeNtIfIcAtOr %1, %2")
+    QString MyIdentifier = QString("02, %1, %2") //my_identifier
                                .arg(socket->peerAddress().toString())
                                .arg(QString::number(socket->socketDescriptor()));
     sendToSocket(socket, MyIdentifier);
@@ -121,13 +121,13 @@ void Sending::Get_New_Client(QTcpSocket* socket, QList<QTcpSocket*> Sockets_reci
         }
 
         // Отправляем новому клиенту информацию о других сокетах
-        QString identifier1 = QString("thEinDeNtIfIcAtOr %1, %2")
+        QString identifier1 = QString("03, %1, %2") //the_identifier
                                   .arg(otherSocket->peerAddress().toString())
                                   .arg(QString::number(otherSocket->socketDescriptor()));
         sendToSocket(socket, identifier1);
 
         // Отправляем другим сокетам информацию о новом клиенте
-        QString identifier2 = QString("thEinDeNtIfIcAtOr %1, %2")
+        QString identifier2 = QString("03, %1, %2") //the_identifier
                                   .arg(socket->peerAddress().toString())
                                   .arg(QString::number(socket->socketDescriptor()));
         sendToSocket(otherSocket, identifier2);
@@ -147,10 +147,7 @@ void Sending::sendToSocket(QTcpSocket* socket, const QString& message) {
     out.setVersion(QDataStream::Qt_6_0);
     out << message;
 
-
-
     socket->write(data);
-
 
     if (!socket->waitForBytesWritten(5000)) {  // Timeout для предотвращения вечного ожидания
         qDebug() << "Error waiting for bytes to be written:" << socket->errorString();

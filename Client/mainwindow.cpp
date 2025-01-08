@@ -32,37 +32,40 @@ void MainWindow::slotReadyRead() {
         QString str;
         in >> str;
 
-        qDebug()<<str;
-
         QString Identifier = str.left(2);
         int messType = Identifier.toInt();
-        if(messType==04){
-        ui->textBrowser->append(Identifier);
-        }
 
-        if(str.startsWith("thEinDeNtIfIcAtOr")){
-            QString identifierPart = str.mid(QString("thEinDeNtIfIcAtOr ").length());
-            QStringList parts = identifierPart.split(", ");
-            if (parts.size() == 2) {
-                if(ui->listWidget->findItems(parts[1],Qt::MatchExactly).isEmpty()){
-                    QString string = parts[0]+" | "+parts[1];
-                    ui->listWidget->addItem(parts[1]);
-                    qDebug()<<"Add";
-                    parts.clear();
-                }
-                // ui->listWidget->clear();
+        switch (messType) {
+
+            case 02:  //my_identifier
+            {
+                QStringList parts = str.split(", ");
+                QString num = parts[2];
+                setWindowTitle(num);
+                qDebug()<<"My socket"<<MySocket;
+                break;
+            }
+
+
+            case 03: //the_identifier
+            {
+                QStringList parts = str.split(", ");
+                 ui->listWidget->addItem(parts[2]);
+                qDebug()<<"Add";
+                 parts.clear();
+                break;
+            }
+
+
+            case 04:   //message
+            {
+                ui->textBrowser->append(Identifier);
+                break;
             }
 
         }
 
-         if (str.startsWith("mYthEinDeNtIfIcAtOr")){
-            QString identifierPart = str.mid(QString("myEinDeNtIfIcAtOr ").length());
-            QStringList parts = identifierPart.split(", ");
-            QString num = parts[1];
-            setWindowTitle(num);
-            MySocket =/* parts[0] % " " %*/ parts[1];
-            qDebug()<<"My socket"<<MySocket;
-        }
+
 
          if (str.startsWith("tOrEmUvE ")) {
              qDebug() << "Delete request received";
@@ -95,9 +98,6 @@ void MainWindow::slotReadyRead() {
              qDebug()<<identifier << "reciver";
          }
 
-         if(str.startsWith("MeSaGe ")){
-
-         }
     }
 
     else {
