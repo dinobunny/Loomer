@@ -2,7 +2,7 @@
 #include "sending.h"
 #include <QDebug>
 #include <QTimer>
-#include<QStringBuilder>
+#include <QStringBuilder>
 #include "qmutex.h"
 
 
@@ -17,20 +17,13 @@ server::server() {
         qDebug() << "Error starting server";
     }
 
-
-    /*QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, [](){
-        QMutexLocker locker(&mutex);
-        //qDebug()<< Sockets;
-        locker.unlock();
-    });
-    timer->start(1);*/ // Устанавливаем интервал в 5 секунд (5000 мс)
 }
 
 
 void server::setSending(Sending& sending) {
     sendingPtr = &sending;
     connect(this, &server::newClientConnected, sendingPtr, &Sending::Get_New_Client);
+    connect(this, &server::disconnectedClient, sendingPtr, &Sending::Get_Disconnected_Client);
 }
 
 
@@ -38,24 +31,23 @@ void server::incomingConnection(qintptr socketDescriptor) {
     QTcpSocket* socket = new QTcpSocket(this);
     if (socket->setSocketDescriptor(socketDescriptor)) {
         QString clientIP = socket->peerAddress().toString();
-        qDebug() << "Client connected from IP:" << clientIP;
+        qDebug() << "Client connected from IP:" << clientIP << "with deck:" << socketDescriptor;
 
         Sockets.push_back(socket);
-        //SendIdentificator();
         qDebug()<< "Socket :"<<socket->peerPort();
 
+        QString IP = socket->peerAddress().toString();
+
         connect(socket, &QTcpSocket::readyRead, this, &server::slotsReadyRead);
-        // connect(socket, &QTcpSocket::disconnected, this, &server::handleDisconnection);
-       // connect(socket, &QTcpSocket::readyRead, this, &server::SendIdentificator);
+        connect(socket, &QTcpSocket::disconnected, this, [this, socketDescriptor, IP](){
+            qDebug() << "disconnected dest form server" <<socketDescriptor;
+            emit disconnectedClient(socketDescriptor, IP);
+        });
         qDebug() << "Client connected, socket descriptor:" << socketDescriptor;
 
-         emit newClientConnected(socket, Sockets);
+        emit newClientConnected(socket, Sockets);
 
-    } /*else {
-        delete socket; // Удаляем сокет, если не удалось установить дескриптор
-        qDebug() << "Error setting socket descriptor";
-    }*/
-        // Отправка идентификатора новым клиентам
+    }
 }
 
 void server::slotsReadyRead() {

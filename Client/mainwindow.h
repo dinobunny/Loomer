@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 #include <QTcpSocket>
-#include<QListWidgetItem>
+#include <QListWidgetItem>
+#include <QVector>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,27 +19,30 @@ public:
     ~MainWindow();
 
 private slots:
-    // void on_pushButton_clicked();
     void slotReadyRead();
     void on_pushButton_2_clicked();
     void on_lineEdit_returnPressed();
-    // void getIdentificator();
+
 
     void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
 
-    void on_listWidget_itemActivated(QListWidgetItem *item);
+
 
 private:
     void SendToServer(const QString& str);
-    void closeEvent(QCloseEvent* event) ;
+    void Socket_print();
+    void Socket_delete(QString socket_to_delete);
 
 
     Ui::MainWindow *ui;
     QTcpSocket *socket;
     QByteArray Data;
     QString MySocket;
-    QVector<QString> ActiveDialog;
     QString Interlocutor;
+    QVector<QString> Sockets;
+
+
+
 
 };
 #endif // MAINWINDOW_H

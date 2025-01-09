@@ -32,6 +32,8 @@ void MainWindow::slotReadyRead() {
         QString str;
         in >> str;
 
+         ui->textBrowser->append(str);
+
         QString Identifier = str.left(2);
         int messType = Identifier.toInt();
 
@@ -50,8 +52,12 @@ void MainWindow::slotReadyRead() {
             case 03: //the_identifier
             {
                 QStringList parts = str.split(", ");
-                 ui->listWidget->addItem(parts[2]);
-                qDebug()<<"Add";
+                if(!Sockets.contains(parts[2]))
+                {
+                    Sockets.push_back(parts[2]);
+                    MainWindow::Socket_print();
+                }
+
                  parts.clear();
                 break;
             }
@@ -59,8 +65,16 @@ void MainWindow::slotReadyRead() {
 
             case 04:   //message
             {
-                ui->textBrowser->append(Identifier);
+                QStringList parts = str.split(",");
+                ui->textBrowser->append(parts[3]);
                 break;
+            }
+
+            case 05:
+            {
+                QStringList parts = str.split(", ");
+                Sockets.removeAll(parts[2]);
+                MainWindow::Socket_delete(parts[2]);
             }
 
         }
@@ -94,7 +108,6 @@ void MainWindow::slotReadyRead() {
 
          if(str.startsWith("AlOuSeComMuniCaTiOn ")){
              QString identifier = str.mid(QString("AlOuSeComMuniCaTiOn ,").length()).trimmed();
-             ActiveDialog.push_back(identifier);
              qDebug()<<identifier << "reciver";
          }
 
@@ -143,25 +156,30 @@ void MainWindow::on_lineEdit_returnPressed() {
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
 {
     QString num = item->text();
-    QString socket = ("hWaNtToTaLk ") % MySocket % ", " % num;
-    ui->textBrowser->append(num);
-    qDebug()<<socket;
-   // SendToServer(socket);
     Interlocutor = num;
-    delete item;
 }
 
 
-void MainWindow::on_listWidget_itemActivated(QListWidgetItem *item)
-{
 
-}
 
-void MainWindow::closeEvent(QCloseEvent* event) {
-    // Пример: Сохраняем данные перед закрытием
-    bool shouldSave = true;  // Эта переменная может быть результатом вашего алгоритма сохранения
-    if (shouldSave) {
-        // Сохраняем данные
-        qDebug() << "Saving data...";
+void MainWindow::Socket_print(){
+    for(auto i : Sockets){
+        QList<QListWidgetItem*> item = ui->listWidget->findItems(i, Qt::MatchExactly);
+        if(item.isEmpty()){
+            ui->listWidget->addItem(i);
+        }
+
     }
+}
+
+void MainWindow::Socket_delete(QString socket_to_delete){
+
+        QList<QListWidgetItem*> items = ui->listWidget->findItems(socket_to_delete, Qt::MatchExactly);
+        if(!items.isEmpty()){
+            for (QListWidgetItem* item : items) {
+                int row = ui->listWidget->row(item); // Получить строку элемента
+                delete ui->listWidget->takeItem(row);
+            }
+        }
+
 }

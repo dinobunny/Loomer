@@ -28,6 +28,7 @@ signals:
 
 public slots:
     void Get_New_Client(QTcpSocket* socet, QList<QTcpSocket*> Sockets_reciverd);
+    void Get_Disconnected_Client(qintptr socket, QString IP);
 
 };
 

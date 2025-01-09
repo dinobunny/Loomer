@@ -36,14 +36,14 @@ private:
     static QMutex mutex;
     QByteArray Data;
 
-     Sending* sendingPtr = nullptr;
+    Sending* sendingPtr = nullptr;
 
 signals:
     void ComunicationPare(QVector<QTcpSocket*> identificators);
     void ComunicationMesage(quintptr RESEVER, quintptr SENDER, QString text );
-//  void newConnection(QTcpSocket* socket);
 
-    void newClientConnected(QTcpSocket* socet, QList<QTcpSocket*> Sockets);
+    void newClientConnected(QTcpSocket* socet, QList<QTcpSocket*>& Sockets);
+    void disconnectedClient(qintptr socet, QString IP);
 
 public slots:
      // void Resive_Identifier(QList<QTcpSocket*> resiving_identifier);
