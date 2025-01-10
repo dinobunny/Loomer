@@ -1,14 +1,15 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QListWidgetItem>
 #include <QMainWindow>
 #include <QTcpSocket>
-#include <QListWidgetItem>
 #include <QVector>
 
-
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui {
+class MainWindow;
+}
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
@@ -23,16 +24,12 @@ private slots:
     void on_pushButton_2_clicked();
     void on_lineEdit_returnPressed();
 
-
     void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
 
-
-
 private:
-    void SendToServer(const QString& str);
+    void SendToServer(const QString &str);
     void Socket_print();
     void Socket_delete(QString socket_to_delete);
-
 
     Ui::MainWindow *ui;
     QTcpSocket *socket;
@@ -40,9 +37,5 @@ private:
     QString MySocket;
     QString Interlocutor;
     QVector<QString> Sockets;
-
-
-
-
 };
 #endif // MAINWINDOW_H

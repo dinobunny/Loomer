@@ -2,11 +2,9 @@
 #define SERVER_H
 
 #include "qmutex.h"
+#include <QList>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QList>
-#include <QByteArray>
-#include <QDebug>
 
 class Sending;
 
@@ -15,39 +13,24 @@ class server : public QTcpServer {
 
 public:
     server();
-    QList<QTcpSocket*>& getArray() const;  // Объявление метода
-
-    void setSending(Sending& sending);
+    void setSending(Sending &sending);
 
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
 
 private slots:
     void slotsReadyRead();
-    // void handleDisconnection();
-   // void SendIdentificator();
-    void Comunication(quintptr RESEVER, quintptr SENDER, QString text );
 
 private:
-    void ConectionHub();
-    void SendToClient(QTcpSocket *clientSocket, const QString& str);
-    void SendTOClientData(QVector<QTcpSocket *> identificators);
-    static QList<QTcpSocket*> Sockets;
+    static QList<QTcpSocket *> Sockets;
     static QMutex mutex;
-    QByteArray Data;
 
-    Sending* sendingPtr = nullptr;
+    Sending *sendingPtr = nullptr;
 
 signals:
-    void ComunicationPare(QVector<QTcpSocket*> identificators);
-    void ComunicationMesage(quintptr RESEVER, quintptr SENDER, QString text );
-
-    void newClientConnected(QTcpSocket* socet, QList<QTcpSocket*>& Sockets);
+    void newClientConnected(QTcpSocket *socet, QList<QTcpSocket *> &Sockets);
     void disconnectedClient(qintptr socet, QString IP);
-
-public slots:
-     // void Resive_Identifier(QList<QTcpSocket*> resiving_identifier);
-
+    void sendingMesage(QTcpSocket *socket, const QString &message);
 };
 
 #endif // SERVER_H
