@@ -4,6 +4,15 @@
 #include <QStringBuilder>
 #include <QTimer>
 
+enum MesageIdentifiers {
+
+    ID_MY     = 02,
+    ID_CLIENT = 03,
+    ID_DELETE = 04,
+    MESAGE    = 05
+
+};
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -28,13 +37,13 @@ void MainWindow::slotReadyRead() {
         QString str;
         in >> str;
 
-        QString Identifier = str.left(2);
-        int messType = Identifier.toInt();
+
         QStringList parts = str.split(",");
+        int messType = parts[0].toInt();
 
         switch (messType) {
 
-            case 02: // my_identifier
+            case ID_MY: // my_identifier
             {
                 MySocket = parts[2];
                 QString num = parts[2];
@@ -43,7 +52,7 @@ void MainWindow::slotReadyRead() {
                 break;
             }
 
-            case 03: // the_identifier
+            case ID_CLIENT: // the_identifier
             {
                 if (!Sockets.contains(parts[2])) {
                     Sockets.push_back(parts[2]);
@@ -54,14 +63,14 @@ void MainWindow::slotReadyRead() {
                 break;
             }
 
-            case 04: // delete_client;
+            case ID_DELETE: // delete_client;
             {
                 Sockets.removeAll(parts[2]);
                 MainWindow::Socket_delete(parts[2]);
                 break;
             }
 
-            case 05: // message
+            case MESAGE: // message
             {
                 ui->textBrowser->append(parts[3]);
                 break;
@@ -90,7 +99,8 @@ void MainWindow::on_pushButton_2_clicked() {
 }
 
 void MainWindow::on_lineEdit_returnPressed() {
-    QString message = QString("05,%1,%2,%3")
+    QString message = QString("%1,%2,%3,%4")
+                          .arg(MESAGE)
                           .arg(Interlocutor)
                           .arg(MySocket)
                           .arg(ui->lineEdit->text());

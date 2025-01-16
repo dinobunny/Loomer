@@ -5,6 +5,15 @@
 #include <QStringBuilder>
 #include <QTimer>
 
+enum MesageIdentifiers {
+
+    ID_MY     = 02,
+    ID_CLIENT = 03,
+    ID_DELETE = 04,
+    MESAGE    = 05
+
+};
+
 QList<QTcpSocket *> server::Sockets;
 QMutex server::mutex;
 
@@ -58,11 +67,11 @@ void server::slotsReadyRead() {
             QString str;
             in >> str;
 
-            QString Identifier = str.left(2);
-            int messageType = Identifier.toInt();
+            QString Identifier = str.left(1);
+            QStringList parts = str.split(",");
+            int messageType = parts[0].toInt();
 
-            if (messageType == 05) {
-                QStringList parts = str.split(",");
+            if (messageType == MESAGE) {
                 QTcpSocket *RESIVER = nullptr; // Указатель на сокет получателя
                 QTcpSocket *SENDER = nullptr; // Указатель на сокет отправителя
                 QString TEXT = parts[3];
@@ -77,7 +86,8 @@ void server::slotsReadyRead() {
                 QByteArray data;
                 QDataStream out(&data, QIODevice::WriteOnly);
                 out.setVersion(QDataStream::Qt_6_0);
-                QString message = QString("05,%1,%2,%3")
+                QString message = QString("%1,%2,%3,%4")
+                                      .arg(MESAGE)
                                       .arg(QString::number(RESIVER->socketDescriptor()))
                                       .arg(QString::number(SENDER->socketDescriptor()))
                                       .arg(TEXT);
