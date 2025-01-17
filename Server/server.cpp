@@ -1,18 +1,11 @@
-#include "server.h"
 #include "qmutex.h"
-#include "sending.h"
 #include <QDebug>
 #include <QStringBuilder>
 #include <QTimer>
 
-enum MesageIdentifiers {
-
-    ID_MY     = 02,
-    ID_CLIENT = 03,
-    ID_DELETE = 04,
-    MESAGE    = 05
-
-};
+#include "server.h"
+#include "sending.h"
+#include "enums.h"
 
 QList<QTcpSocket *> server::Sockets;
 QMutex server::mutex;

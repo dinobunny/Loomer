@@ -8,6 +8,8 @@
 
 #include "server.h"
 
+
+
 class Sending : public QThread {
     Q_OBJECT
 
@@ -17,6 +19,8 @@ public:
 private:
     server *m_server;
     QList<QTcpSocket *> Sockets;
+    QString String_to_Send(QString ID, QString IP, QString DESCK);
+
 
 public slots:
     void Get_New_Client(QTcpSocket *socet, QList<QTcpSocket *> Sockets_reciverd);
