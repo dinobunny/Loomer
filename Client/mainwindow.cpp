@@ -19,11 +19,56 @@ MainWindow::MainWindow(QWidget *parent)
     socket = new QTcpSocket(this);
 
     if (socket->state() != QAbstractSocket::ConnectedState) {
-        socket->connectToHost("192.168.186.1", 2323);
+        socket->connectToHost("192.168.1.168", 2323);
     }
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
     connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
+
+    this->setStyleSheet(
+        "#MainWindow {"
+        "background-color :rgb(32, 43, 54);"
+        "}"
+        );
+
+    ui->listWidget->setStyleSheet(
+        "QListWidget {"
+        "    background-color: rgb(32, 43, 54);"  // Светло-синий фон
+        "    color: white"
+        "}"
+        );
+
+    ui->listWidget_2->setStyleSheet(
+         "QListWidget {"
+        "background-color: rgb(64, 93, 114)"
+        "}"
+        "QListWidget::item {"
+        "   background-color: lightblue;"  // Светло-голубой фон
+        "   border-radius: 15px;"  // Круглые углы
+        "   padding: 10px;"  // Отступы внутри элемента (влияят на размер)
+        "   font-size: 14px;"  // Размер шрифта
+        "   color: black;"  // Цвет текста "
+        "   max-width: 15px;"
+        "   min-width: 15px;"
+        "}"
+        );
+
+    ui->pushButton->setStyleSheet(
+        "QPushButton {"
+        "background-color: lightblue;"
+        "}"
+        );
+
+    ui->lineEdit->setStyleSheet(
+        "QLineEdit {"
+        "background-color: lightblue;"
+        "}"
+        );
+
+
+
+    ui->listWidget_2->setSpacing(7);
+
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -72,7 +117,7 @@ void MainWindow::slotReadyRead() {
 
             case MESAGE: // message
             {
-                ui->textBrowser->append(parts[3]);
+                ui->listWidget_2->addItem(parts[3]);
                 break;
             }
 
@@ -89,7 +134,7 @@ void MainWindow::SendToServer(const QString &str) {
         socket->write(data);
         qDebug() << socket;
     } else {
-        ui->textBrowser->append("Socket not connected");
+        ui->listWidget_2->addItem("Socket not connected");
     }
 }
 
@@ -105,6 +150,12 @@ void MainWindow::on_lineEdit_returnPressed() {
                           .arg(MySocket)
                           .arg(ui->lineEdit->text());
 
+    QListWidgetItem *item = new QListWidgetItem(ui->lineEdit->text());
+
+    item->setTextAlignment(Qt::AlignRight);
+
+    ui->listWidget_2->addItem(item);
+
     SendToServer(message);
 
     ui->lineEdit->clear();
@@ -113,6 +164,7 @@ void MainWindow::on_lineEdit_returnPressed() {
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
     QString num = item->text();
     Interlocutor = num;
+    ui->lineEdit->setFocus();
 }
 
 void MainWindow::Socket_print() {
@@ -120,7 +172,10 @@ void MainWindow::Socket_print() {
         QList<QListWidgetItem *> item =
             ui->listWidget->findItems(i, Qt::MatchExactly);
         if (item.isEmpty()) {
-            ui->listWidget->addItem(i);
+            QListWidgetItem *item  = new QListWidgetItem(QIcon("user.png"), i);
+            ui->listWidget->setIconSize(QSize(25, 25));
+
+            ui->listWidget->addItem(item);
         }
     }
 }
