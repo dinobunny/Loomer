@@ -1,0 +1,34 @@
+/* Стиль для главного окна */
+#MainWindow {
+    background-color: rgb(32, 43, 54);
+}
+
+/* Стиль для listWidget */
+QListWidget {
+    background-color: rgb(32, 43, 54);
+    color: white;
+}
+
+/* Стиль для listWidget_2 */
+QListWidget#listWidget_2 {
+    background-color: rgb(64, 93, 114);
+}
+QListWidget#listWidget_2::item {
+    background-color: lightblue;
+    border-radius: 15px;
+    padding: 10px;
+    font-size: 14px;
+    color: black;
+    max-width: 15px;
+    min-width: 15px;
+}
+
+/* Стиль для кнопки */
+QPushButton {
+    background-color: lightblue;
+}
+
+/* Стиль для QLineEdit */
+QLineEdit {
+    background-color: lightblue;
+}
