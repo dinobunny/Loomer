@@ -2,28 +2,32 @@
 #include "ui_mainwindow.h"
 #include <QListWidget>
 #include <QStringBuilder>
-#include <QTimer>
+#include <QDir>
 
-enum MesageIdentifiers {
-
-    ID_MY     = 02,
-    ID_CLIENT = 03,
-    ID_DELETE = 04,
-    MESAGE    = 05
-
-};
+#include <enums.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     socket = new QTcpSocket(this);
 
+    qDebug() << QCoreApplication::applicationDirPath();
+
     if (socket->state() != QAbstractSocket::ConnectedState) {
-        socket->connectToHost("192.168.186.1", 2323);
+        socket->connectToHost("192.168.0.101", 2323);
     }
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
     connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
+
+    this->setStyleSheet(Style_Sheete());
+
+
+    QIcon buton_icon(Get_Path( IMAGED, BUTON));
+    ui->pushButton->setIcon(buton_icon);
+
+    ui->listWidget_2->setSpacing(7);
+
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -72,7 +76,7 @@ void MainWindow::slotReadyRead() {
 
             case MESAGE: // message
             {
-                ui->textBrowser->append(parts[3]);
+                ui->listWidget_2->addItem(parts[3]);
                 break;
             }
 
@@ -89,14 +93,10 @@ void MainWindow::SendToServer(const QString &str) {
         socket->write(data);
         qDebug() << socket;
     } else {
-        ui->textBrowser->append("Socket not connected");
+        ui->listWidget_2->addItem("Socket not connected");
     }
 }
 
-void MainWindow::on_pushButton_2_clicked() {
-    SendToServer(ui->lineEdit->text());
-    ui->lineEdit->clear();
-}
 
 void MainWindow::on_lineEdit_returnPressed() {
     QString message = QString("%1,%2,%3,%4")
@@ -105,14 +105,26 @@ void MainWindow::on_lineEdit_returnPressed() {
                           .arg(MySocket)
                           .arg(ui->lineEdit->text());
 
+    QListWidgetItem *item = new QListWidgetItem(ui->lineEdit->text());
+
+    item->setTextAlignment(Qt::AlignRight);
+
+    ui->listWidget_2->addItem(item);
+
     SendToServer(message);
 
     ui->lineEdit->clear();
 }
 
+void MainWindow::on_pushButton_clicked()
+{
+     on_lineEdit_returnPressed();
+}
+
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
     QString num = item->text();
     Interlocutor = num;
+    ui->lineEdit->setFocus();
 }
 
 void MainWindow::Socket_print() {
@@ -120,7 +132,11 @@ void MainWindow::Socket_print() {
         QList<QListWidgetItem *> item =
             ui->listWidget->findItems(i, Qt::MatchExactly);
         if (item.isEmpty()) {
-            ui->listWidget->addItem(i);
+            QString appDir = QCoreApplication::applicationDirPath();
+            QListWidgetItem *item  = new QListWidgetItem(QIcon(Get_Path(USER, IMAGED)), i);
+            ui->listWidget->setIconSize(QSize(25, 25));
+
+            ui->listWidget->addItem(item);
         }
     }
 }
@@ -134,5 +150,53 @@ void MainWindow::Socket_delete(QString socket_to_delete) {
             int row = ui->listWidget->row(item); // Получить строку элемента
             delete ui->listWidget->takeItem(row);
         }
+    }
+}
+
+
+
+QString MainWindow::Get_Path(qintptr target, qintptr directory) {
+    QString path;
+    QString file;
+    QString extention;
+
+    if (target == IMAGED) {
+        path = "images";
+        extention = ".png";
+    }
+    if (target == STYLES) {
+        path = "styles";
+        extention = ".qss";
+    }
+    if (directory == USER) {
+        file = "user";
+    }
+    if (directory == BUTON) {
+        file = "send";
+    }
+    if (directory == STYLE){
+        file = "style";
+    }
+
+    QString appDir = QCoreApplication::applicationDirPath();
+    QDir baseDir(appDir);
+    baseDir.cdUp(); // Поднимаемся к папке build
+    baseDir.cdUp(); // Поднимаемся к папке Client
+    baseDir.cdUp();
+    baseDir.cd(path);
+    QString filePath = baseDir.filePath(file + extention);
+    qDebug() << "File path:" << filePath;
+
+    return filePath;
+}
+
+
+QString MainWindow::Style_Sheete()
+{
+    QFile styleFile(Get_Path(STYLES, STYLE)); // Убедитесь, что путь корректный
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        styleFile.close();
+        return styleSheet;
     }
 }

@@ -13,6 +13,7 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
+    enums.h \
     mainwindow.h
 
 FORMS += \

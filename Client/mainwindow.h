@@ -21,15 +21,19 @@ public:
 
 private slots:
     void slotReadyRead();
-    void on_pushButton_2_clicked();
+    void on_pushButton_clicked();
     void on_lineEdit_returnPressed();
 
     void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
+
 
 private:
     void SendToServer(const QString &str);
     void Socket_print();
     void Socket_delete(QString socket_to_delete);
+    QString Style_Sheete();
+    QString Get_Path(qintptr file, qintptr directory);
+
 
     Ui::MainWindow *ui;
     QTcpSocket *socket;
