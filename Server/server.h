@@ -25,7 +25,11 @@ private:
     static QList<QTcpSocket *> Sockets;
     static QMutex mutex;
 
+    void Read_Config();
+
     Sending *sendingPtr = nullptr;
+    qint16 server_port;
+    QHostAddress::SpecialAddress addressEnum;
 
 signals:
     void newClientConnected(QTcpSocket *socet, QList<QTcpSocket *> &Sockets);

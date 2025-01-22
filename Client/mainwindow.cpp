@@ -25,12 +25,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setStyleSheet(Style_Sheete());
 
-
-    QIcon buton_icon(Get_Path( IMAGED, BUTON));
+    QIcon buton_icon(Get_Path(IMAGED, BUTON));
     ui->pushButton->setIcon(buton_icon);
 
     ui->listWidget_2->setSpacing(7);
-
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -44,45 +42,43 @@ void MainWindow::slotReadyRead() {
         QString str;
         in >> str;
 
-
         QStringList parts = str.split(",");
         int messType = parts[0].toInt();
 
         switch (messType) {
 
-            case ID_MY: // my_identifier
-            {
-                MySocket = parts[2];
-                QString num = parts[2];
-                setWindowTitle(num);
-                qDebug() << "My socket" << MySocket;
-                break;
+        case ID_MY: // my_identifier
+        {
+            MySocket = parts[2];
+            QString num = parts[2];
+            setWindowTitle(num);
+            qDebug() << "My socket" << MySocket;
+            break;
+        }
+
+        case ID_CLIENT: // the_identifier
+        {
+            if (!Sockets.contains(parts[2])) {
+                Sockets.push_back(parts[2]);
+                MainWindow::Socket_print();
             }
 
-            case ID_CLIENT: // the_identifier
-            {
-                if (!Sockets.contains(parts[2])) {
-                    Sockets.push_back(parts[2]);
-                    MainWindow::Socket_print();
-                }
+            parts.clear();
+            break;
+        }
 
-                parts.clear();
-                break;
-            }
+        case ID_DELETE: // delete_client;
+        {
+            Sockets.removeAll(parts[2]);
+            MainWindow::Socket_delete(parts[2]);
+            break;
+        }
 
-            case ID_DELETE: // delete_client;
-            {
-                Sockets.removeAll(parts[2]);
-                MainWindow::Socket_delete(parts[2]);
-                break;
-            }
-
-            case MESAGE: // message
-            {
-                ui->listWidget_2->addItem(parts[3]);
-                break;
-            }
-
+        case MESAGE: // message
+        {
+            ui->listWidget_2->addItem(parts[3]);
+            break;
+        }
         }
     }
 }
@@ -99,7 +95,6 @@ void MainWindow::SendToServer(const QString &str) {
         ui->listWidget_2->addItem("Socket not connected");
     }
 }
-
 
 void MainWindow::on_lineEdit_returnPressed() {
     QString message = QString("%1,%2,%3,%4")
@@ -119,10 +114,7 @@ void MainWindow::on_lineEdit_returnPressed() {
     ui->lineEdit->clear();
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-     on_lineEdit_returnPressed();
-}
+void MainWindow::on_pushButton_clicked() { on_lineEdit_returnPressed(); }
 
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
     QString num = item->text();
@@ -136,7 +128,8 @@ void MainWindow::Socket_print() {
             ui->listWidget->findItems(i, Qt::MatchExactly);
         if (item.isEmpty()) {
             QString appDir = QCoreApplication::applicationDirPath();
-            QListWidgetItem *item  = new QListWidgetItem(QIcon(Get_Path(USER, IMAGED)), i);
+            QListWidgetItem *item =
+                new QListWidgetItem(QIcon(Get_Path(USER, IMAGED)), i);
             ui->listWidget->setIconSize(QSize(25, 25));
 
             ui->listWidget->addItem(item);
@@ -156,9 +149,6 @@ void MainWindow::Socket_delete(QString socket_to_delete) {
     }
 }
 
-
-
-
 QString MainWindow::Get_Path(qintptr target, qintptr directory) {
     QString path;
     QString file;
@@ -172,7 +162,7 @@ QString MainWindow::Get_Path(qintptr target, qintptr directory) {
         path = "styles";
         extention = ".qss";
     }
-    if(target == CONFIG){
+    if (target == CONFIG) {
         file = "config";
         extention = ".json";
         path = "NO";
@@ -183,18 +173,17 @@ QString MainWindow::Get_Path(qintptr target, qintptr directory) {
     if (directory == BUTON) {
         file = "send";
     }
-    if (directory == STYLE){
+    if (directory == STYLE) {
         file = "style";
     }
-
-
 
     QString appDir = QCoreApplication::applicationDirPath();
     QDir baseDir(appDir);
     baseDir.cdUp(); // Поднимаемся к папке build
     baseDir.cdUp(); // Поднимаемся к папке Client
     baseDir.cdUp();
-    if(path != "NO")baseDir.cd(path);
+    if (path != "NO")
+        baseDir.cd(path);
 
     QString filePath = baseDir.filePath(file + extention);
     qDebug() << "File path:" << filePath;
@@ -202,9 +191,7 @@ QString MainWindow::Get_Path(qintptr target, qintptr directory) {
     return filePath;
 }
 
-
-QString MainWindow::Style_Sheete()
-{
+QString MainWindow::Style_Sheete() {
     QFile styleFile(Get_Path(STYLES, STYLE)); // Убедитесь, что путь корректный
     if (styleFile.open(QFile::ReadOnly)) {
         QString styleSheet = QLatin1String(styleFile.readAll());
@@ -213,10 +200,8 @@ QString MainWindow::Style_Sheete()
     }
 }
 
-
-void MainWindow::Read_Config(QTcpSocket *socket)
-{
-    QFile file(Get_Path(CONFIG,-1));
+void MainWindow::Read_Config(QTcpSocket *socket) {
+    QFile file(Get_Path(CONFIG, -1));
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Error open config";
         return;
@@ -235,12 +220,14 @@ void MainWindow::Read_Config(QTcpSocket *socket)
 
     QJsonObject config_obj = config_json.object();
 
-    QString server_ip = config_obj.value("Settings").toObject().value("server-ip").toString();
-    qint16 server_port = config_obj.value("Settings").toObject().value("server-port").toInt();
+    QString server_ip =
+        config_obj.value("Settings").toObject().value("server-ip").toString();
+    qint16 server_port =
+        config_obj.value("Settings").toObject().value("server-port").toInt();
 
     if (socket->state() != QAbstractSocket::ConnectedState) {
-        qDebug() <<server_ip;
-        qDebug() <<server_port;
+        qDebug() << server_ip;
+        qDebug() << server_port;
         socket->connectToHost(server_ip, server_port);
     }
 }
