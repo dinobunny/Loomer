@@ -7,11 +7,23 @@
 #include "sending.h"
 #include "enums.h"
 
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QCoreApplication>
+#include <QDir>
+
 QList<QTcpSocket *> server::Sockets;
 QMutex server::mutex;
 
+
+
 server::server() {
-    if (this->listen(QHostAddress::Any, 2323)) {
+
+    Read_Config(); // reading config flie
+
+    if (this->listen(addressEnum, server_port)) {
         qDebug() << "Server started on port 2323";
     } else {
         qDebug() << "Error starting server";
@@ -89,4 +101,43 @@ void server::slotsReadyRead() {
             }
         }
     }
+}
+
+void server::Read_Config() {
+
+    QString appDir = QCoreApplication::applicationDirPath();
+    QDir baseDir(appDir);
+    baseDir.cdUp(); // Поднимаемся к папке build
+    baseDir.cdUp(); // Поднимаемся к папке Client
+    baseDir.cdUp();
+
+    QString filePath = baseDir.filePath("config.json");
+    qDebug() << filePath;
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Error open config";
+        return;
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    // Парсим JSON
+    QJsonDocument config_json = QJsonDocument::fromJson(data);
+
+    if (config_json.isNull()) {
+        qDebug() << "Error work with config";
+        return;
+    }
+
+    QJsonObject config_obj = config_json.object();
+
+    QString server_channel = config_obj.value("Settings").toObject().value("host-adres").toString();
+    server_port = config_obj.value("Settings").toObject().value("server-port").toInt();
+
+    if(server_channel == "Any") addressEnum = QHostAddress::Any;
+
+    qDebug() << server_channel;
+    qDebug() << server_port;
 }

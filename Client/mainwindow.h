@@ -31,6 +31,7 @@ private:
     void SendToServer(const QString &str);
     void Socket_print();
     void Socket_delete(QString socket_to_delete);
+    void Read_Config(QTcpSocket *socket);
     QString Style_Sheete();
     QString Get_Path(qintptr file, qintptr directory);
 
