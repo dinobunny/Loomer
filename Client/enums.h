@@ -12,14 +12,15 @@ enum MesageIdentifiers {
 
 enum Directorys {
 
-    IMAGED = 02,
-    STYLES = 03
+    IMAGED ,
+    STYLES ,
+    CONFIG
 };
 
 enum Files {
 
-    USER  = 02,
-    BUTON = 03,
+    USER ,
+    BUTON ,
     STYLE
 };
 

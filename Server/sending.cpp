@@ -1,23 +1,27 @@
-#include "sending.h"
 #include <QDebug>
 #include <QMutex>
 #include <QThread>
 #include <QTimer>
 #include <windows.h>
 
+#include "sending.h"
+#include "enums.h"
+
 QMutex mutex1;
 
 Sending::Sending(server *srv, QObject *parent)
     : QThread(parent), m_server(srv) {}
+
 
 void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_reciverd) {
 
     Sockets = Sockets_reciverd;
 
     // Отправляем идентификатор новому клиенту
-    QString MyIdentifier = QString("02,%1,%2") // my_identifier
-                               .arg(socket->peerAddress().toString())
-                               .arg(QString::number(socket->socketDescriptor()));
+    QString MyIdentifier = String_to_Send(QString::number(ID_MY)
+                                          ,socket->peerAddress().toString()
+                                          ,QString::number(socket->socketDescriptor()));
+
     sendToSocket(socket, MyIdentifier);
 
 
@@ -26,7 +30,7 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
 
         // Пропускаем отключенные сокеты
         if (otherSocket->state() != QAbstractSocket::ConnectedState) {
-            qDebug() << "Skipping disconnected socket:" << otherSocket->socketDescriptor();
+            qDebug() << "Skipping disconnected socket:" << otherSocket;
             continue;
         }
 
@@ -36,15 +40,17 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
         }
 
         // Отправляем новому клиенту информацию о других сокетах
-        QString identifier1 = QString("03,%1,%2") // the_identifier
-                                  .arg(otherSocket->peerAddress().toString())
-                                  .arg(QString::number(otherSocket->socketDescriptor()));
+        QString identifier1 = String_to_Send(QString::number(ID_CLIENT)
+                                             ,otherSocket->peerAddress().toString()
+                                             ,QString::number(otherSocket->socketDescriptor()));
+
         sendToSocket(socket, identifier1);
 
         // Отправляем другим сокетам информацию о новом клиенте
-        QString identifier2 = QString("03,%1,%2") // the_identifier
-                                  .arg(socket->peerAddress().toString())
-                                  .arg(QString::number(socket->socketDescriptor()));
+        QString identifier2 = String_to_Send(QString::number(ID_CLIENT)
+                                             ,socket->peerAddress().toString()
+                                             ,QString::number(socket->socketDescriptor()));
+
         sendToSocket(otherSocket, identifier2);
     }
 
@@ -55,25 +61,17 @@ void Sending::Get_Disconnected_Client(qintptr socket, QString IP) {
     mutex1.lock();
     for (int i = 0; i < Sockets.size(); i++) {
         if (Sockets[i]->state() != QAbstractSocket::ConnectedState) {
-
             Sockets.removeAt(i);
         }
     }
 
     for (int i = 0; i < Sockets.size(); i++) {
 
-        QString identifier3 = QString("04,%1,%2")
-                                  .arg(IP)
-                                  .arg(socket);
+        QString identifier3 = String_to_Send(QString::number(ID_DELETE), IP
+                                             ,QString::number(static_cast<qint64>(socket)));
+
         sendToSocket(Sockets[i], identifier3);
     }
-
-    qDebug() << "After delete";
-
-    for(auto i : Sockets){
-        qDebug() << i;
-    }
-
     mutex1.unlock();
 }
 
@@ -99,3 +97,15 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
 
     QThread::msleep(130);
 }
+
+
+
+QString Sending::String_to_Send(QString ID, QString IP, QString DESCK)
+{
+    QString mesage = QString("%1,%2,%3")
+    .arg(ID)
+        .arg(IP)
+        .arg(DESCK);
+    return mesage;
+}
+

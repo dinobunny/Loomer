@@ -4,6 +4,11 @@
 #include <QStringBuilder>
 #include <QDir>
 
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+
 #include <enums.h>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -13,9 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     qDebug() << QCoreApplication::applicationDirPath();
 
-    if (socket->state() != QAbstractSocket::ConnectedState) {
-        socket->connectToHost("192.168.0.101", 2323);
-    }
+    Read_Config(socket); // read from config
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
     connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
@@ -155,6 +158,7 @@ void MainWindow::Socket_delete(QString socket_to_delete) {
 
 
 
+
 QString MainWindow::Get_Path(qintptr target, qintptr directory) {
     QString path;
     QString file;
@@ -168,6 +172,11 @@ QString MainWindow::Get_Path(qintptr target, qintptr directory) {
         path = "styles";
         extention = ".qss";
     }
+    if(target == CONFIG){
+        file = "config";
+        extention = ".json";
+        path = "NO";
+    }
     if (directory == USER) {
         file = "user";
     }
@@ -178,12 +187,15 @@ QString MainWindow::Get_Path(qintptr target, qintptr directory) {
         file = "style";
     }
 
+
+
     QString appDir = QCoreApplication::applicationDirPath();
     QDir baseDir(appDir);
     baseDir.cdUp(); // Поднимаемся к папке build
     baseDir.cdUp(); // Поднимаемся к папке Client
     baseDir.cdUp();
-    baseDir.cd(path);
+    if(path != "NO")baseDir.cd(path);
+
     QString filePath = baseDir.filePath(file + extention);
     qDebug() << "File path:" << filePath;
 
@@ -198,5 +210,37 @@ QString MainWindow::Style_Sheete()
         QString styleSheet = QLatin1String(styleFile.readAll());
         styleFile.close();
         return styleSheet;
+    }
+}
+
+
+void MainWindow::Read_Config(QTcpSocket *socket)
+{
+    QFile file(Get_Path(CONFIG,-1));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Error open config";
+        return;
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    // Парсим JSON
+    QJsonDocument config_json = QJsonDocument::fromJson(data);
+
+    if (config_json.isNull()) {
+        qDebug() << "Error worck with config";
+        return;
+    }
+
+    QJsonObject config_obj = config_json.object();
+
+    QString server_ip = config_obj.value("Settings").toObject().value("server-ip").toString();
+    qint16 server_port = config_obj.value("Settings").toObject().value("server-port").toInt();
+
+    if (socket->state() != QAbstractSocket::ConnectedState) {
+        qDebug() <<server_ip;
+        qDebug() <<server_port;
+        socket->connectToHost(server_ip, server_port);
     }
 }
