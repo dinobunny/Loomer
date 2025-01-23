@@ -41,21 +41,19 @@ void server::incomingConnection(qintptr socketDescriptor) {
     QTcpSocket *socket = new QTcpSocket(this);
     if (socket->setSocketDescriptor(socketDescriptor)) {
         QString clientIP = socket->peerAddress().toString();
-        qDebug() << "Client connected from IP:" << clientIP
+        qInfo() << "Client connected from IP:" << clientIP
                  << "with deck:" << socketDescriptor;
 
         Sockets.push_back(socket);
-        qDebug() << "Socket :" << socket->peerPort();
 
         QString IP = socket->peerAddress().toString();
 
         connect(socket, &QTcpSocket::readyRead, this, &server::slotsReadyRead);
         connect(socket, &QTcpSocket::disconnected, this,
                 [this, socketDescriptor, IP]() {
-            qDebug() << "disconnected dest form server" << socketDescriptor;
+            qInfo() << "disconnected dest form server" << socketDescriptor;
             emit disconnectedClient(socketDescriptor, IP);
         });
-        qDebug() << "Client connected, socket descriptor:" << socketDescriptor;
 
         emit newClientConnected(socket, Sockets);
     }
@@ -68,7 +66,7 @@ void server::slotsReadyRead() {
         in.setVersion(QDataStream::Qt_6_0);
 
         if (in.status() == QDataStream::Ok) {
-            qDebug() << "Reading data...";
+            qInfo() << "Reading data...";
             QString str;
             in >> str;
 
@@ -112,11 +110,10 @@ void server::Read_Config() {
     baseDir.cdUp();
 
     QString filePath = baseDir.filePath("config.json");
-    qDebug() << filePath;
 
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Error open config";
+        qFatal() << "Error open config";
         return;
     }
 
@@ -127,7 +124,7 @@ void server::Read_Config() {
     QJsonDocument config_json = QJsonDocument::fromJson(data);
 
     if (config_json.isNull()) {
-        qDebug() << "Error work with config";
+        qFatal() << "Error work with config";
         return;
     }
 
@@ -138,6 +135,4 @@ void server::Read_Config() {
 
     if(server_channel == "Any") addressEnum = QHostAddress::Any;
 
-    qDebug() << server_channel;
-    qDebug() << server_port;
 }

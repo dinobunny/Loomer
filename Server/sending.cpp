@@ -30,7 +30,7 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
 
         // Пропускаем отключенные сокеты
         if (otherSocket->state() != QAbstractSocket::ConnectedState) {
-            qDebug() << "Skipping disconnected socket:" << otherSocket;
+            qWarning() << "Skipping disconnected socket:" << otherSocket;
             continue;
         }
 
@@ -77,7 +77,7 @@ void Sending::Get_Disconnected_Client(qintptr socket, QString IP) {
 
 void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
     if (socket->state() != QAbstractSocket::ConnectedState) {
-        qDebug() << "Socket not connected:" << socket->socketDescriptor();
+        qFatal() << "Socket not connected:" << socket->socketDescriptor();
         return;
     }
 
@@ -88,16 +88,15 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
 
     socket->write(data);
 
-    qDebug()<<"mesage" << message;
+    qInfo()<<"mesage" << message;
 
     if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
-        qDebug() << "Error waiting for bytes to be written:"
+        qFatal() << "Error waiting for bytes to be written:"
                  << socket->errorString();
     }
 
     QThread::msleep(130);
 }
-
 
 
 QString Sending::String_to_Send(QString ID, QString IP, QString DESCK)
