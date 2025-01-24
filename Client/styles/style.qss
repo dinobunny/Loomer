@@ -12,6 +12,7 @@ QListWidget {
 /* Стиль для listWidget_2 */
 QListWidget#listWidget_2 {
     background-color: rgb(64, 93, 114);
+    border-radius: 15px;
 }
 QListWidget#listWidget_2::item {
     background-color: lightblue;

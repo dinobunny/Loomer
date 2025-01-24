@@ -14,6 +14,8 @@ SOURCES += \
 
 HEADERS += \
     enums.h \
+    enums.h \
+    enums.h \
     mainwindow.h
 
 FORMS += \

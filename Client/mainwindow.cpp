@@ -101,10 +101,10 @@ void MainWindow::SendToServer(const QString &str) {
 
 void MainWindow::on_lineEdit_returnPressed() {
     QString message = QString("%1,%2,%3,%4")
-                          .arg(MESAGE)
-                          .arg(Interlocutor)
-                          .arg(MySocket)
-                          .arg(ui->lineEdit->text());
+    .arg(MESAGE)
+        .arg(Interlocutor)
+        .arg(MySocket)
+        .arg(ui->lineEdit->text());
 
     QListWidgetItem *item = new QListWidgetItem(ui->lineEdit->text());
 
