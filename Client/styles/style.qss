@@ -24,7 +24,7 @@ QListWidget#listWidget_2::item {
 }
 
 /* Стиль для кнопки */
-QPushButton {
+QPushButton#pushButton {
     background-color: lightblue;
 }
 

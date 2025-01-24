@@ -25,6 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setStyleSheet(Style_Sheete());
 
+
+
+
     QIcon buton_icon(Get_Path(IMAGED, BUTON));
     ui->pushButton->setIcon(buton_icon);
 
@@ -198,6 +201,7 @@ QString MainWindow::Style_Sheete() {
         styleFile.close();
         return styleSheet;
     }
+    qDebug() << "Style File not open";
 }
 
 void MainWindow::Read_Config(QTcpSocket *socket) {
@@ -231,3 +235,9 @@ void MainWindow::Read_Config(QTcpSocket *socket) {
         socket->connectToHost(server_ip, server_port);
     }
 }
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    ui->listWidget_2->addItem("Clivked");
+}
+
