@@ -24,10 +24,8 @@ private slots:
     void on_pushButton_clicked();
     void on_lineEdit_returnPressed();
 
-    void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidget_itemClicked(QListWidgetItem *item);
 
-
-    void on_pushButton_2_clicked();
 
 private:
     void SendToServer(const QString &str);

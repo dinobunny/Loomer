@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pushButton->setIcon(buton_icon);
 
     ui->listWidget_2->setSpacing(7);
+
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -95,7 +96,7 @@ void MainWindow::SendToServer(const QString &str) {
         socket->write(data);
         qDebug() << socket;
     } else {
-        ui->listWidget_2->addItem("Socket not connected");
+        qDebug() << "Socket not connected";
     }
 }
 
@@ -119,10 +120,20 @@ void MainWindow::on_lineEdit_returnPressed() {
 
 void MainWindow::on_pushButton_clicked() { on_lineEdit_returnPressed(); }
 
-void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item) {
+
+
+void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
+{
     QString num = item->text();
+     item->setBackground(QBrush(QColor(QColorConstants::Svg::lightblue)));
     Interlocutor = num;
     ui->lineEdit->setFocus();
+
+    for(int i = 0; i < ui->listWidget->count(); i++){
+        QListWidgetItem *item = ui->listWidget->item(i);
+        if(item->text() == num)item->setBackground(QBrush(QColor(QColorConstants::Svg::lightblue)));
+        else item->setBackground(Qt::NoBrush); // Сбрасывает цвет фона
+    }
 }
 
 void MainWindow::Socket_print() {
@@ -236,8 +247,5 @@ void MainWindow::Read_Config(QTcpSocket *socket) {
     }
 }
 
-void MainWindow::on_pushButton_2_clicked()
-{
-    ui->listWidget_2->addItem("Clivked");
-}
+
 
