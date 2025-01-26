@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QVector>
+#include "enums.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,7 +34,7 @@ private:
     void Socket_delete(QString socket_to_delete);
     void Read_Config(QTcpSocket *socket);
     QString Style_Sheete();
-    QString Get_Path(qintptr file, qintptr directory);
+    QString Get_Path(Directorys file, Files directory);
 
 
     Ui::MainWindow *ui;

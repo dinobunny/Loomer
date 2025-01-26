@@ -10,18 +10,19 @@ enum MesageIdentifiers {
 
 };
 
-enum Directorys {
+enum class Directorys {
 
     IMAGED ,
     STYLES ,
     CONFIG
 };
 
-enum Files {
+enum class Files {
 
     USER ,
     BUTON ,
-    STYLE
+    STYLE ,
+    NON
 };
 
 #endif // ENUMS_H

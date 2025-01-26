@@ -25,10 +25,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setStyleSheet(Style_Sheete());
 
+    // Config config;
+    //config.Read();
+    //
 
 
 
-    QIcon buton_icon(Get_Path(IMAGED, BUTON));
+    QIcon buton_icon(Get_Path(Directorys::IMAGED, Files::BUTON));
     ui->pushButton->setIcon(buton_icon);
 
     ui->listWidget_2->setSpacing(7);
@@ -143,7 +146,7 @@ void MainWindow::Socket_print() {
         if (item.isEmpty()) {
             QString appDir = QCoreApplication::applicationDirPath();
             QListWidgetItem *item =
-                new QListWidgetItem(QIcon(Get_Path(USER, IMAGED)), i);
+                new QListWidgetItem(QIcon(Get_Path(Directorys::IMAGED, Files::USER)), i);
             ui->listWidget->setIconSize(QSize(25, 25));
 
             ui->listWidget->addItem(item);
@@ -163,31 +166,30 @@ void MainWindow::Socket_delete(QString socket_to_delete) {
     }
 }
 
-QString MainWindow::Get_Path(qintptr target, qintptr directory) {
+QString MainWindow::Get_Path(Directorys target, Files directory) {
     QString path;
     QString file;
     QString extention;
 
-    if (target == IMAGED) {
+    if (target == Directorys::IMAGED) {
         path = "images";
         extention = ".png";
     }
-    if (target == STYLES) {
+    if (target == Directorys::STYLES) {
         path = "styles";
         extention = ".qss";
     }
-    if (target == CONFIG) {
+    if (target == Directorys::CONFIG) {
         file = "config";
-        extention = ".json";
-        path = "NO";
+        extention = ".json";        
     }
-    if (directory == USER) {
+    if (directory == Files::USER) {
         file = "user";
     }
-    if (directory == BUTON) {
+    if (directory == Files::BUTON) {
         file = "send";
     }
-    if (directory == STYLE) {
+    if (directory == Files::STYLE) {
         file = "style";
     }
 
@@ -196,7 +198,7 @@ QString MainWindow::Get_Path(qintptr target, qintptr directory) {
     baseDir.cdUp(); // Поднимаемся к папке build
     baseDir.cdUp(); // Поднимаемся к папке Client
     baseDir.cdUp();
-    if (path != "NO")
+    if (directory != Files::NON)
         baseDir.cd(path);
 
     QString filePath = baseDir.filePath(file + extention);
@@ -206,17 +208,24 @@ QString MainWindow::Get_Path(qintptr target, qintptr directory) {
 }
 
 QString MainWindow::Style_Sheete() {
-    QFile styleFile(Get_Path(STYLES, STYLE)); // Убедитесь, что путь корректный
+
+    QString res = "" ;
+
+    QFile styleFile(Get_Path(Directorys::STYLES, Files::STYLE)); // Убедитесь, что путь корректный
     if (styleFile.open(QFile::ReadOnly)) {
         QString styleSheet = QLatin1String(styleFile.readAll());
         styleFile.close();
-        return styleSheet;
+        res = styleSheet;
+
     }
     qDebug() << "Style File not open";
+
+    return res;
+
 }
 
 void MainWindow::Read_Config(QTcpSocket *socket) {
-    QFile file(Get_Path(CONFIG, -1));
+    QFile file(Get_Path(Directorys::CONFIG, Files::NON));
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Error open config";
         return;
