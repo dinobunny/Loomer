@@ -102,7 +102,7 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
 QString Sending::String_to_Send(QString ID, QString IP, QString DESCK)
 {
     QString mesage = QString("%1,%2,%3")
-    .arg(ID)
+        .arg(ID)
         .arg(IP)
         .arg(DESCK);
     return mesage;

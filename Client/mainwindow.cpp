@@ -11,14 +11,20 @@
 
 #include <enums.h>
 
+Config::Settings Config::settings;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     socket = new QTcpSocket(this);
 
+    Config config;
+    config.Read();
+     // read from config
+    socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
+
     qDebug() << QCoreApplication::applicationDirPath();
 
-    Read_Config(socket); // read from config
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
     connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
@@ -224,8 +230,8 @@ QString MainWindow::Style_Sheete() {
 
 }
 
-void MainWindow::Read_Config(QTcpSocket *socket) {
-    QFile file(Get_Path(Directorys::CONFIG, Files::NON));
+void Config::Read() {
+    QFile file(mainWindow->Get_Path(Directorys::CONFIG, Files::NON));
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Error open config";
         return;
@@ -244,17 +250,11 @@ void MainWindow::Read_Config(QTcpSocket *socket) {
 
     QJsonObject config_obj = config_json.object();
 
-    QString server_ip =
+    Config::settings.server_ip =
         config_obj.value("Settings").toObject().value("server-ip").toString();
-    qint16 server_port =
+    Config::settings.server_port =
         config_obj.value("Settings").toObject().value("server-port").toInt();
 
-    if (socket->state() != QAbstractSocket::ConnectedState) {
-        qDebug() << server_ip;
-        qDebug() << server_port;
-        socket->connectToHost(server_ip, server_port);
-    }
+
 }
-
-
 

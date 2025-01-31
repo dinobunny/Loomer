@@ -1,6 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "qjsonobject.h"
 #include "qmutex.h"
 #include <QList>
 #include <QTcpServer>
@@ -25,8 +26,6 @@ private:
     static QList<QTcpSocket *> Sockets;
     static QMutex mutex;
 
-    void Read_Config();
-
     Sending *sendingPtr = nullptr;
     qint16 server_port;
     QHostAddress::SpecialAddress addressEnum;
@@ -35,6 +34,22 @@ signals:
     void newClientConnected(QTcpSocket *socet, QList<QTcpSocket *> &Sockets);
     void disconnectedClient(qintptr socet, QString IP);
     void sendingMesage(QTcpSocket *socket, const QString &message);
+};
+
+
+class Config {
+public:
+    Config(){}
+    void Read();
+
+    struct Settings {
+         QJsonObject config_obj;
+         qint16 server_port;
+         QHostAddress::SpecialAddress server_channel;
+    };
+
+    static Settings settings;
+
 };
 
 #endif // SERVER_H

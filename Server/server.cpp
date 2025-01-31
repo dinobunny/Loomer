@@ -17,13 +17,15 @@
 QList<QTcpSocket *> server::Sockets;
 QMutex server::mutex;
 
+Config::Settings Config::settings;
 
 
 server::server() {
 
-    Read_Config(); // reading config flie
+    Config config;
+    config.Read();// reading config flie
 
-    if (this->listen(addressEnum, server_port)) {
+    if (this->listen(Config::settings.server_channel, Config::settings.server_port)) {
         qDebug() << "Server started on port 2323";
     } else {
         qDebug() << "Error starting server";
@@ -101,8 +103,9 @@ void server::slotsReadyRead() {
     }
 }
 
-void server::Read_Config() {
 
+void Config::Read()
+{
     QString appDir = QCoreApplication::applicationDirPath();
     QDir baseDir(appDir);
     baseDir.cdUp(); // Поднимаемся к папке build
@@ -128,11 +131,12 @@ void server::Read_Config() {
         return;
     }
 
-    QJsonObject config_obj = config_json.object();
+    Config::settings.config_obj = config_json.object();
 
-    QString server_channel = config_obj.value("Settings").toObject().value("host-adres").toString();
-    server_port = config_obj.value("Settings").toObject().value("server-port").toInt();
+    QString server_channel_string = Config::settings.config_obj.value("Settings").toObject().value("host-adres").toString();
+    Config::settings.server_port = Config::settings.config_obj.value("Settings").toObject().value("server-port").toInt();
 
-    if(server_channel == "Any") addressEnum = QHostAddress::Any;
+
+    if(server_channel_string == "Any") Config::settings.server_channel = QHostAddress::Any;
 
 }
