@@ -77,7 +77,7 @@ void Sending::Get_Disconnected_Client(qintptr socket, QString IP) {
 
 void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
     if (socket->state() != QAbstractSocket::ConnectedState) {
-        qFatal() << "Socket not connected:" << socket->socketDescriptor();
+        qWarning() << "Socket not connected:" << socket->socketDescriptor();
         return;
     }
 
@@ -91,7 +91,7 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
     qInfo()<<"mesage" << message;
 
     if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
-        qFatal() << "Error waiting for bytes to be written:"
+        qWarning() << "Error waiting for bytes to be written:"
                  << socket->errorString();
     }
 

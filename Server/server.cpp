@@ -14,6 +14,8 @@
 #include <QCoreApplication>
 #include <QDir>
 
+
+
 QList<QTcpSocket *> server::Sockets;
 QMutex server::mutex;
 
@@ -21,6 +23,10 @@ Config::Settings Config::settings;
 
 
 server::server() {
+
+    qInstallMessageHandler(Loger::myLogMessageHandler);
+    // Install custom message pattern
+    qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] [%{line}] [%{file}]: %{message}");
 
     Config config;
     config.Read();// reading config flie
@@ -30,6 +36,7 @@ server::server() {
     } else {
         qDebug() << "Error starting server";
     }
+
 }
 
 void server::setSending(Sending &sending) {
@@ -139,4 +146,19 @@ void Config::Read()
 
     if(server_channel_string == "Any") Config::settings.server_channel = QHostAddress::Any;
 
+}
+
+ void Loger::myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg){
+     QString formattedMsg = qFormatLogMessage(type, context, msg) + "\n";
+
+     // Записываем в файл
+     QFile logFile("app.log");
+     if (logFile.open(QIODevice::WriteOnly | QIODevice::Append))
+     {
+         logFile.write(qUtf8Printable(formattedMsg));
+     }
+
+     // Выводим в консоль
+     fprintf(stderr, "%s", qUtf8Printable(formattedMsg));
+     fflush(stderr);
 }
