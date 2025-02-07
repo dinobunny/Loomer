@@ -3,6 +3,7 @@
 #include <QListWidget>
 #include <QStringBuilder>
 #include <QDir>
+#include <QTimer>
 
 #include <QFile>
 #include <QJsonDocument>
@@ -16,35 +17,50 @@ Config::Settings Config::settings;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    socket = new QTcpSocket(this);
-
-    Config config;
-    config.Read();
-     // read from config
-    socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
-
-    qDebug() << QCoreApplication::applicationDirPath();
-
-
-    connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
-    connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
-
     this->setStyleSheet(Style_Sheete());
-
-    // Config config;
-    //config.Read();
-    //
-
-
 
     QIcon buton_icon(Get_Path(Directorys::IMAGED, Files::BUTON));
     ui->pushButton->setIcon(buton_icon);
 
     ui->listWidget_2->setSpacing(7);
 
+    socket = new QTcpSocket(this);
+
+    Config config;
+    config.Read();
+
+    QTimer::singleShot(0, this, &MainWindow::ConnectToServer);
+
+
+    qDebug() << QCoreApplication::applicationDirPath();
+
+
+    connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
+
+
+    connect(socket, &QTcpSocket::stateChanged, this, &MainWindow::ConnectToServer);
+
+
 }
 
-MainWindow::~MainWindow() { delete ui; }
+void MainWindow::ConnectToServer(){
+
+    if (socket->state() != QAbstractSocket::ConnectedState) {
+        socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
+
+        if (socket->state() == QAbstractSocket::ConnectedState) {
+            qDebug() << "Connected to Server";
+        } else {
+            qWarning() << "Error connect to Server:" << socket->errorString();
+            QTimer::singleShot(3000, this, &MainWindow::ConnectToServer);  // Повтор через 3 секунди
+        }
+    }
+}
+
+MainWindow::~MainWindow() {
+    connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
+    delete ui;
+}
 
 void MainWindow::slotReadyRead() {
     QDataStream in(socket);
@@ -145,6 +161,7 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
     }
 }
 
+
 void MainWindow::Socket_print() {
     for (auto i : Sockets) {
         QList<QListWidgetItem *> item =
@@ -203,7 +220,7 @@ QString MainWindow::Get_Path(Directorys target, Files directory) {
     QDir baseDir(appDir);
     baseDir.cdUp(); // Поднимаемся к папке build
     baseDir.cdUp(); // Поднимаемся к папке Client
-    baseDir.cdUp();
+    baseDir.cdUp();// Поднимаемся к папке Client
     if (directory != Files::NON)
         baseDir.cd(path);
 

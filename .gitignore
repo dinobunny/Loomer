@@ -1,2 +1,8 @@
-build\
+# Ігнорування всіх build-директорій у корені та підпроектах
+build/
 Client/build/
+Server/build/
+
+# Ігнорування файлів налаштувань Qt Creator
+Client/Client.pro.user
+Server/Server.pro.user

@@ -32,6 +32,8 @@ private slots:
 
     void on_listWidget_itemClicked(QListWidgetItem *item);
 
+    void ConnectToServer();
+
 
 private:
     void SendToServer(const QString &str);
@@ -59,7 +61,7 @@ public:
     Config(){}
     void Read();
 
-    Config(MainWindow *mw) : mainWindow(mw) {}
+    // Config(MainWindow *mw) : mainWindow(mw) {}
 
     struct Settings {
         QJsonObject config_obj;
