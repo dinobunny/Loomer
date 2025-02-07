@@ -12,7 +12,10 @@
 
 #include <enums.h>
 
+
 Config::Settings Config::settings;
+
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -31,12 +34,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     QTimer::singleShot(0, this, &MainWindow::ConnectToServer);
 
-
     qDebug() << QCoreApplication::applicationDirPath();
 
-
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
-
 
     connect(socket, &QTcpSocket::stateChanged, this, &MainWindow::ConnectToServer);
 
