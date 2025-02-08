@@ -13,6 +13,7 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
+    config.h \
     enums.h \
     enums.h \
     enums.h \

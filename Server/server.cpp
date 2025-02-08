@@ -6,6 +6,7 @@
 #include "server.h"
 #include "sending.h"
 #include "enums.h"
+#include "config.h"
 
 #include <QFile>
 #include <QJsonDocument>

@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "config.h"
+
 #include <QListWidget>
 #include <QStringBuilder>
 #include <QDir>
