@@ -47,7 +47,7 @@ private:
     QTcpSocket *socket;
     QByteArray Data;
     QString MySocket;
-    QString Interlocutor;
+    QString Interlocutor {};
     QVector<QString> Sockets;
 };
 

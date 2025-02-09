@@ -128,6 +128,7 @@ void MainWindow::SendToServer(const QString &str) {
 }
 
 void MainWindow::on_lineEdit_returnPressed() {
+    if(!Interlocutor.isEmpty()){
     QString message = QString("%1,%2,%3,%4")
     .arg(MESAGE)
         .arg(Interlocutor)
@@ -142,6 +143,7 @@ void MainWindow::on_lineEdit_returnPressed() {
 
     SendToServer(message);
 
+}
     ui->lineEdit->clear();
 }
 
