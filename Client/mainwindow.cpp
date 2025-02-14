@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "config.h"
+#include "m_pack.h"
 
 #include <QListWidget>
 #include <QStringBuilder>
@@ -13,6 +14,7 @@
 #include <QJsonValue>
 
 #include <enums.h>
+#include <msgpack.hpp>
 
 
 Config::Settings Config::settings;
@@ -34,14 +36,21 @@ MainWindow::MainWindow(QWidget *parent)
     Config config;
     config.Read();
 
-    QTimer::singleShot(0, this, &MainWindow::ConnectToServer);
+    setupConnection();
 
     qDebug() << QCoreApplication::applicationDirPath();
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
 
-    connect(socket, &QTcpSocket::stateChanged, this, &MainWindow::ConnectToServer);
 
+}
+
+void MainWindow::setupConnection(){
+    connect(socket, &QTcpSocket::connected, this, &MainWindow::onConnected);
+    connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::onError);
+    connect(socket, &QTcpSocket::disconnected, this, &MainWindow::onDisconnected);
+
+    socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
 
 }
 
@@ -59,19 +68,35 @@ void MainWindow::ConnectToServer(){
     }
 }
 
+void MainWindow::onConnected() {
+    qDebug() << "Connected to Server";
+}
+
+void MainWindow::onError(QAbstractSocket::SocketError error) {
+    qWarning() << "Error connect to Server:" << socket->errorString();
+    // Запускаем повторное подключение через 3 секунды:
+    QTimer::singleShot(3000, this, &MainWindow::setupConnection);
+}
+
+void MainWindow::onDisconnected() {
+    qWarning() << "Disconnected from Server. Reconnecting...";
+    QTimer::singleShot(3000, this, &MainWindow::setupConnection);
+}
+
+
 MainWindow::~MainWindow() {
     connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
     delete ui;
 }
 
 void MainWindow::slotReadyRead() {
-    QDataStream in(socket);
 
-    in.setVersion(QDataStream::Qt_6_0);
+    M_pack msg_p;
 
-    if (in.status() == QDataStream::Ok) {
-        QString str;
-        in >> str;
+
+        QString str = msg_p.unpack(socket->readAll());
+
+        ui->listWidget_2->addItem(str);
 
         QStringList parts = str.split(",");
         int messType = parts[0].toInt();
@@ -111,7 +136,7 @@ void MainWindow::slotReadyRead() {
             break;
         }
         }
-    }
+
 }
 
 void MainWindow::SendToServer(const QString &str) {
@@ -245,7 +270,7 @@ QString MainWindow::Style_Sheete() {
         res = styleSheet;
 
     }
-    qDebug() << "Style File not open";
+    else qDebug() << "Style File not open";
 
     return res;
 
@@ -276,6 +301,17 @@ void Config::Read() {
     Config::settings.server_port =
         config_obj.value("Settings").toObject().value("server-port").toInt();
 
+}
+
+QString M_pack::unpack(QByteArray rawData) {
+
+    msgpack::object_handle oh = msgpack::unpack(rawData.constData(), rawData.size());
+    msgpack::object obj = oh.get();
+
+    QString data = QString::fromStdString(obj.as<std::string>());
+
+    return data;
 
 }
+
 

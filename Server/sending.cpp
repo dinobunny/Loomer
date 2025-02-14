@@ -7,6 +7,8 @@
 #include "sending.h"
 #include "enums.h"
 
+#include <msgpack.hpp>
+
 QMutex mutex1;
 
 Sending::Sending(server *srv, QObject *parent)
@@ -81,12 +83,13 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
         return;
     }
 
-    QByteArray data;
-    QDataStream out(&data, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_6_0);
-    out << message;
 
-    socket->write(data);
+    std::string msg = message.toStdString();
+
+    msgpack::sbuffer buffer;
+    msgpack::pack(buffer, msg);
+
+    socket->write(buffer.data(), buffer.size());
 
     qInfo()<<"mesage" << message;
 
@@ -95,7 +98,7 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
                  << socket->errorString();
     }
 
-    QThread::msleep(130);
+
 }
 
 

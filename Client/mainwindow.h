@@ -9,6 +9,7 @@
 
 
 #include <QJsonObject>
+#include <QtWidgets/QMainWindow>
 
 
 QT_BEGIN_NAMESPACE
@@ -33,6 +34,10 @@ private slots:
     void on_listWidget_itemClicked(QListWidgetItem *item);
 
     void ConnectToServer();
+    void onConnected();
+    void onError(QAbstractSocket::SocketError error);
+    void onDisconnected();
+    void setupConnection();
 
 
 private:
