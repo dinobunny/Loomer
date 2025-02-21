@@ -6,9 +6,11 @@
 #include <QTcpSocket>
 #include <QVector>
 #include "enums.h"
+#include "getpath.h"
 
 
 #include <QJsonObject>
+#include <QMainWindow>
 
 
 QT_BEGIN_NAMESPACE
@@ -32,7 +34,10 @@ private slots:
 
     void on_listWidget_itemClicked(QListWidgetItem *item);
 
-    void ConnectToServer();
+    void onConnected();
+    void onError(QAbstractSocket::SocketError error);
+    void onDisconnected();
+    void setupConnection();
 
 
 private:
@@ -49,6 +54,12 @@ private:
     QString MySocket;
     QString Interlocutor {};
     QVector<QString> Sockets;
+
+    bool Close_Window_stat = false;
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 };
 
 

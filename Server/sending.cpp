@@ -6,6 +6,9 @@
 
 #include "sending.h"
 #include "enums.h"
+#include "m_pack.h"
+
+#include <msgpack.hpp>
 
 QMutex mutex1;
 
@@ -24,6 +27,7 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
 
     sendToSocket(socket, MyIdentifier);
 
+    QThread::msleep(100);
 
     for (int i = 0; i < Sockets.size(); ++i) {
         QTcpSocket *otherSocket = Sockets[i];
@@ -40,6 +44,7 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
         }
 
         // Отправляем новому клиенту информацию о других сокетах
+
         QString identifier1 = String_to_Send(QString::number(ID_CLIENT)
                                              ,otherSocket->peerAddress().toString()
                                              ,QString::number(otherSocket->socketDescriptor()));
@@ -47,7 +52,8 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
         sendToSocket(socket, identifier1);
 
         // Отправляем другим сокетам информацию о новом клиенте
-        QString identifier2 = String_to_Send(QString::number(ID_CLIENT)
+
+         QString identifier2 = String_to_Send(QString::number(ID_CLIENT)
                                              ,socket->peerAddress().toString()
                                              ,QString::number(socket->socketDescriptor()));
 
@@ -81,21 +87,18 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
         return;
     }
 
-    QByteArray data;
-    QDataStream out(&data, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_6_0);
-    out << message;
-
-    socket->write(data);
+    M_pack m_pack;
+    socket->write(m_pack.puck(message).data());
+    socket->flush();
 
     qInfo()<<"mesage" << message;
 
+
     if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
         qWarning() << "Error waiting for bytes to be written:"
-                 << socket->errorString();
+                   << socket->errorString();
     }
 
-    QThread::msleep(130);
 }
 
 
@@ -107,4 +110,5 @@ QString Sending::String_to_Send(QString ID, QString IP, QString DESCK)
         .arg(DESCK);
     return mesage;
 }
+
 

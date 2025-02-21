@@ -7,6 +7,7 @@
 #include "sending.h"
 #include "enums.h"
 #include "config.h"
+#include "m_pack.h"
 
 #include <QFile>
 #include <QJsonDocument>
@@ -14,6 +15,8 @@
 #include <QJsonValue>
 #include <QCoreApplication>
 #include <QDir>
+
+#include <msgpack.hpp>
 
 
 
@@ -72,42 +75,38 @@ void server::incomingConnection(qintptr socketDescriptor) {
 void server::slotsReadyRead() {
     QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
     if (socket) {
-        QDataStream in(socket);
-        in.setVersion(QDataStream::Qt_6_0);
+        M_pack m_pack;
+        qInfo() << "Reading data...";
+        QString str = m_pack.unpack(socket->readAll());
 
-        if (in.status() == QDataStream::Ok) {
-            qInfo() << "Reading data...";
-            QString str;
-            in >> str;
+        QString Identifier = str.left(1);
+        QStringList parts = str.split(",");
+        int messageType = parts[0].toInt();
 
-            QString Identifier = str.left(1);
-            QStringList parts = str.split(",");
-            int messageType = parts[0].toInt();
+        if (messageType == MESAGE) {
+            QTcpSocket *RESIVER = nullptr; // Указатель на сокет получателя
+            QTcpSocket *SENDER = nullptr; // Указатель на сокет отправителя
+            QString TEXT = parts[3];
 
-            if (messageType == MESAGE) {
-                QTcpSocket *RESIVER = nullptr; // Указатель на сокет получателя
-                QTcpSocket *SENDER = nullptr; // Указатель на сокет отправителя
-                QString TEXT = parts[3];
-
-                for (int i = 0; i < Sockets.size(); ++i) {
-                    if (Sockets[i]->socketDescriptor() == parts[1].toLongLong())
-                        RESIVER = Sockets[i];
-                    if (Sockets[i]->socketDescriptor() == parts[2].toLongLong())
-                        SENDER = Sockets[i];
-                }
-
-                QByteArray data;
-                QDataStream out(&data, QIODevice::WriteOnly);
-                out.setVersion(QDataStream::Qt_6_0);
-                QString message = QString("%1,%2,%3,%4")
-                                      .arg(MESAGE)
-                                      .arg(QString::number(RESIVER->socketDescriptor()))
-                                      .arg(QString::number(SENDER->socketDescriptor()))
-                                      .arg(TEXT);
-                out << message;
-                emit sendingMesage(RESIVER, message);
+            for (int i = 0; i < Sockets.size(); ++i) {
+                if (Sockets[i]->socketDescriptor() == parts[1].toLongLong())
+                    RESIVER = Sockets[i];
+                if (Sockets[i]->socketDescriptor() == parts[2].toLongLong())
+                    SENDER = Sockets[i];
             }
+
+            QByteArray data;
+            QDataStream out(&data, QIODevice::WriteOnly);
+            out.setVersion(QDataStream::Qt_6_0);
+            QString message = QString("%1,%2,%3,%4")
+                                  .arg(MESAGE)
+                                  .arg(QString::number(RESIVER->socketDescriptor()))
+                                  .arg(QString::number(SENDER->socketDescriptor()))
+                                  .arg(TEXT);
+            out << message;
+            emit sendingMesage(RESIVER, message);
         }
+
     }
 }
 
@@ -163,3 +162,19 @@ void Config::Read()
      fprintf(stderr, "%s", qUtf8Printable(formattedMsg));
      fflush(stderr);
 }
+
+
+ QString M_pack::unpack(QByteArray rawData) {
+     msgpack::object_handle oh = msgpack::unpack(rawData.constData(), rawData.size());
+     msgpack::object obj = oh.get();
+     QString data = QString::fromStdString(obj.as<std::string>());
+     return data;
+ }
+
+ std::string M_pack::puck(QString rawData){
+     std::string msg = rawData.toStdString();
+     msgpack::sbuffer buffer;
+     msgpack::pack(buffer, msg);
+    return std::string(buffer.data(), buffer.size());
+ }
+

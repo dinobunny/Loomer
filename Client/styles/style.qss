@@ -14,6 +14,7 @@ QListWidget#listWidget_2 {
     background-color: rgb(64, 93, 114);
     border-radius: 15px;
 }
+/*
 QListWidget#listWidget_2::item {
     background-color: lightblue;
     border-radius: 15px;
@@ -23,7 +24,7 @@ QListWidget#listWidget_2::item {
     margin-left: 10px; 
     margin-right: 10px;
 }
-
+*/
 /* Стиль для кнопки */
 QPushButton#pushButton {
     background-color: lightblue;

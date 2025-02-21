@@ -22,6 +22,7 @@ enum class Files {
     USER ,
     BUTON ,
     STYLE ,
+    ITEM,
     NON
 };
 

@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "config.h"
+#include "m_pack.h"
+#include "customwidgetitem.h"
+#include "getpath.h"
 
 #include <QListWidget>
 #include <QStringBuilder>
@@ -13,6 +16,7 @@
 #include <QJsonValue>
 
 #include <enums.h>
+#include <msgpack.hpp>
 
 
 Config::Settings Config::settings;
@@ -24,7 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->setStyleSheet(Style_Sheete());
 
-    QIcon buton_icon(Get_Path(Directorys::IMAGED, Files::BUTON));
+    Get_My_Path get_my_path;
+
+    QIcon buton_icon(get_my_path.GetPath(Directorys::IMAGED, Files::BUTON));
     ui->pushButton->setIcon(buton_icon);
 
     ui->listWidget_2->setSpacing(7);
@@ -34,49 +40,63 @@ MainWindow::MainWindow(QWidget *parent)
     Config config;
     config.Read();
 
-    QTimer::singleShot(0, this, &MainWindow::ConnectToServer);
+    setupConnection();
 
     qDebug() << QCoreApplication::applicationDirPath();
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
 
-    connect(socket, &QTcpSocket::stateChanged, this, &MainWindow::ConnectToServer);
+}
 
+void MainWindow::closeEvent(QCloseEvent *event){
+    Close_Window_stat = true;
+    socket->abort();
+    QMainWindow::closeEvent(event);
 
 }
 
-void MainWindow::ConnectToServer(){
+void MainWindow::setupConnection(){
+    connect(socket, &QTcpSocket::connected, this, &MainWindow::onConnected);
+    connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::onError);
+    connect(socket, &QTcpSocket::disconnected, this, &MainWindow::onDisconnected);
 
-    if (socket->state() != QAbstractSocket::ConnectedState) {
-        socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
+    socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
 
-        if (socket->state() == QAbstractSocket::ConnectedState) {
-            qDebug() << "Connected to Server";
-        } else {
-            qWarning() << "Error connect to Server:" << socket->errorString();
-            QTimer::singleShot(3000, this, &MainWindow::ConnectToServer);  // Повтор через 3 секунди
-        }
-    }
 }
+
+
+void MainWindow::onConnected() {
+    qDebug() << "Connected to Server";
+}
+
+void MainWindow::onError(QAbstractSocket::SocketError error) {
+    if(Close_Window_stat)return;
+
+    qWarning() << "Error connect to Server:" << socket->errorString();
+    // Запускаем повторное подключение через 3 секунды:
+    QTimer::singleShot(3000, this, &MainWindow::setupConnection);
+}
+
+void MainWindow::onDisconnected() {
+     if(Close_Window_stat)return;
+
+    qWarning() << "Disconnected from Server. Reconnecting...";
+    QTimer::singleShot(3000, this, &MainWindow::setupConnection);
+}
+
 
 MainWindow::~MainWindow() {
-    connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
     delete ui;
+    connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
 }
 
 void MainWindow::slotReadyRead() {
-    QDataStream in(socket);
+    M_pack msg_p;
+    QString str = msg_p.unpack(socket->readAll());
+    QStringList parts = str.split(",");
+    int messType = parts[0].toInt();
 
-    in.setVersion(QDataStream::Qt_6_0);
-
-    if (in.status() == QDataStream::Ok) {
-        QString str;
-        in >> str;
-
-        QStringList parts = str.split(",");
-        int messType = parts[0].toInt();
-
-        switch (messType) {
+    switch (messType) {
 
         case ID_MY: // my_identifier
         {
@@ -107,20 +127,32 @@ void MainWindow::slotReadyRead() {
 
         case MESAGE: // message
         {
-            ui->listWidget_2->addItem(parts[3]);
+            CustomListItem *widget = new CustomListItem(parts[3]);
+            QWidget *container = new QWidget;
+            QHBoxLayout *layout = new QHBoxLayout(container);
+
+            layout->setContentsMargins(0, 0, 0, 0);
+            layout->setSpacing(0);
+
+            layout->addWidget(widget);
+
+            container->setLayout(layout);
+            layout->addStretch();
+
+            QListWidgetItem *item = new QListWidgetItem(ui->listWidget_2);
+            item->setSizeHint(container->sizeHint());
+            ui->listWidget_2->setItemWidget(item, container);
+            ui->listWidget_2->scrollToBottom();
             break;
         }
-        }
     }
+
 }
 
 void MainWindow::SendToServer(const QString &str) {
     if (socket->state() == QAbstractSocket::ConnectedState) {
-        QByteArray data;
-        QDataStream out(&data, QIODevice::WriteOnly);
-        out.setVersion(QDataStream::Qt_6_0);
-        out << str;
-        socket->write(data);
+        M_pack m_pack;
+        socket->write(m_pack.puck(str).data());
         qDebug() << socket;
     } else {
         qDebug() << "Socket not connected";
@@ -128,18 +160,32 @@ void MainWindow::SendToServer(const QString &str) {
 }
 
 void MainWindow::on_lineEdit_returnPressed() {
-    if(!Interlocutor.isEmpty()){
+    if(!Interlocutor.isEmpty() && ui->lineEdit->text() != QString()){
     QString message = QString("%1,%2,%3,%4")
     .arg(MESAGE)
         .arg(Interlocutor)
         .arg(MySocket)
         .arg(ui->lineEdit->text());
 
-    QListWidgetItem *item = new QListWidgetItem(ui->lineEdit->text());
+    CustomListItem *widget = new CustomListItem(ui->lineEdit->text());
+    QWidget *container = new QWidget;
+    QHBoxLayout *layout = new QHBoxLayout(container);
 
-    item->setTextAlignment(Qt::AlignRight);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
 
-    ui->listWidget_2->addItem(item);
+    layout->addStretch();
+
+    layout->addWidget(widget);
+
+    container->setLayout(layout);
+
+    // Создаём элемент списка и устанавливаем контейнер как виджет элемента
+    QListWidgetItem *item = new QListWidgetItem(ui->listWidget_2);
+    item->setSizeHint(container->sizeHint());
+    ui->listWidget_2->setItemWidget(item, container);
+    ui->listWidget_2->scrollToBottom();
+
 
     SendToServer(message);
 
@@ -171,11 +217,10 @@ void MainWindow::Socket_print() {
         QList<QListWidgetItem *> item =
             ui->listWidget->findItems(i, Qt::MatchExactly);
         if (item.isEmpty()) {
-            QString appDir = QCoreApplication::applicationDirPath();
+            Get_My_Path get_my_path;
             QListWidgetItem *item =
-                new QListWidgetItem(QIcon(Get_Path(Directorys::IMAGED, Files::USER)), i);
+                new QListWidgetItem(QIcon(get_my_path.GetPath(Directorys::IMAGED, Files::USER)), i);
             ui->listWidget->setIconSize(QSize(25, 25));
-
             ui->listWidget->addItem(item);
         }
     }
@@ -193,66 +238,29 @@ void MainWindow::Socket_delete(QString socket_to_delete) {
     }
 }
 
-QString MainWindow::Get_Path(Directorys target, Files directory) {
-    QString path;
-    QString file;
-    QString extention;
-
-    if (target == Directorys::IMAGED) {
-        path = "images";
-        extention = ".png";
-    }
-    if (target == Directorys::STYLES) {
-        path = "styles";
-        extention = ".qss";
-    }
-    if (target == Directorys::CONFIG) {
-        file = "config";
-        extention = ".json";        
-    }
-    if (directory == Files::USER) {
-        file = "user";
-    }
-    if (directory == Files::BUTON) {
-        file = "send";
-    }
-    if (directory == Files::STYLE) {
-        file = "style";
-    }
-
-    QString appDir = QCoreApplication::applicationDirPath();
-    QDir baseDir(appDir);
-    baseDir.cdUp(); // Поднимаемся к папке build
-    baseDir.cdUp(); // Поднимаемся к папке Client
-    baseDir.cdUp();// Поднимаемся к папке Client
-    if (directory != Files::NON)
-        baseDir.cd(path);
-
-    QString filePath = baseDir.filePath(file + extention);
-    qDebug() << "File path:" << filePath;
-
-    return filePath;
-}
 
 QString MainWindow::Style_Sheete() {
 
     QString res = "" ;
 
-    QFile styleFile(Get_Path(Directorys::STYLES, Files::STYLE)); // Убедитесь, что путь корректный
+    Get_My_Path get_my_path;
+
+    QFile styleFile(get_my_path.GetPath(Directorys::STYLES, Files::STYLE)); // Убедитесь, что путь корректный
     if (styleFile.open(QFile::ReadOnly)) {
         QString styleSheet = QLatin1String(styleFile.readAll());
         styleFile.close();
         res = styleSheet;
 
     }
-    qDebug() << "Style File not open";
+    else qDebug() << "Style File not open";
 
     return res;
 
 }
 
 void Config::Read() {
-    QFile file(mainWindow->Get_Path(Directorys::CONFIG, Files::NON));
+    Get_My_Path get_my_path;
+    QFile file(get_my_path.GetPath(Directorys::CONFIG, Files::NON));
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Error open config";
         return;
@@ -276,6 +284,22 @@ void Config::Read() {
     Config::settings.server_port =
         config_obj.value("Settings").toObject().value("server-port").toInt();
 
-
 }
+
+QString M_pack::unpack(QByteArray rawData) {
+
+    msgpack::object_handle oh = msgpack::unpack(rawData.constData(), rawData.size());
+    msgpack::object obj = oh.get();
+    QString data = QString::fromStdString(obj.as<std::string>());
+    return data;
+}
+
+std::string M_pack::puck(QString rawData){
+
+    std::string msg = rawData.toStdString();
+    msgpack::sbuffer buffer;
+    msgpack::pack(buffer, msg);
+    return std::string(buffer.data(), buffer.size());
+}
+
 
