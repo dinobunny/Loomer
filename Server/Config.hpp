@@ -1,20 +1,26 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
+
 #include <QJsonObject>
 #include <QTcpSocket>
 
 class Config {
 public:
-    Config(){}
-    void Read();
-
     struct Settings {
         QJsonObject config_obj;
         qint16 server_port;
         QHostAddress::SpecialAddress server_channel;
     };
 
-    static Settings settings;
+public:
+    Config(std::string_view aFilePath);
+    ~Config() = default;
 
+    void Load();
+
+    const Settings& GetSettings() const;
+
+private:
+    std::string filePath;
+
+    Settings settings;
 };
-#endif // CONFIG_H

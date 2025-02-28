@@ -6,7 +6,7 @@
 #include "server.h"
 #include "sending.h"
 #include "enums.h"
-#include "config.h"
+#include "Config.hpp"
 #include "m_pack.h"
 
 #include <QFile>
@@ -19,23 +19,16 @@
 #include <msgpack.hpp>
 
 
-
 QList<QTcpSocket *> server::Sockets;
 QMutex server::mutex;
 
-Config::Settings Config::settings;
-
-
-server::server() {
+server::server(const Config::Settings& aSettings) {
 
     qInstallMessageHandler(Loger::myLogMessageHandler);
     // Install custom message pattern
     qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] [%{line}] [%{file}]: %{message}");
 
-    Config config;
-    config.Read();// reading config flie
-
-    if (this->listen(Config::settings.server_channel, Config::settings.server_port)) {
+    if (this->listen(aSettings.server_channel, aSettings.server_port)) {
         qDebug() << "Server started on port 2323";
     } else {
         qDebug() << "Error starting server";
@@ -110,37 +103,7 @@ void server::slotsReadyRead() {
     }
 }
 
-
-void Config::Read()
-{
-    QFile file("./config.json");
-    if (!file.open(QIODevice::ReadOnly)) {
-        qFatal() << "Error open config";
-        return;
-    }
-
-    QByteArray data = file.readAll();
-    file.close();
-
-    // Парсим JSON
-    QJsonDocument config_json = QJsonDocument::fromJson(data);
-
-    if (config_json.isNull()) {
-        qFatal() << "Error work with config";
-        return;
-    }
-
-    Config::settings.config_obj = config_json.object();
-
-    QString server_channel_string = Config::settings.config_obj.value("Settings").toObject().value("host-adres").toString();
-    Config::settings.server_port = Config::settings.config_obj.value("Settings").toObject().value("server-port").toInt();
-
-
-    if(server_channel_string == "Any") Config::settings.server_channel = QHostAddress::Any;
-
-}
-
- void Loger::myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg){
+void Loger::myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg){
      QString formattedMsg = qFormatLogMessage(type, context, msg) + "\n";
 
      // Записываем в файл
