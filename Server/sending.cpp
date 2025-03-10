@@ -21,11 +21,11 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
     Sockets = Sockets_reciverd;
 
     // Отправляем идентификатор новому клиенту
-    QString MyIdentifier = String_to_Send(QString::number(ID_MY)
-                                          ,socket->peerAddress().toString()
-                                          ,QString::number(socket->socketDescriptor()));
+    // QString MyIdentifier = String_to_Send(QString::number(ID_MY)
+    //                                       ,socket->peerAddress().toString()
+    //                                       ,QString::number(socket->socketDescriptor()));
 
-    sendToSocket(socket, MyIdentifier);
+    // sendToSocket(socket, MyIdentifier);
 
     QThread::msleep(100);
 
@@ -94,10 +94,10 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
     qInfo()<<"mesage" << message;
 
 
-    if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
-        qWarning() << "Error waiting for bytes to be written:"
-                   << socket->errorString();
-    }
+    // if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
+    //     qWarning() << "Error waiting for bytes to be written:"
+    //                << socket->errorString();
+    // }
 
 }
 

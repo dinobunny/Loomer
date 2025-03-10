@@ -27,6 +27,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     QString Get_Path(Directorys file, Files directory);
+    void SendToServer(const QString &str);
 
 private slots:
     void slotReadyRead();
@@ -42,7 +43,7 @@ private slots:
 
 
 private:
-    void SendToServer(const QString &str);
+    void extracted();
     void Socket_print();
     void Socket_delete(QString socket_to_delete);
     void Read_Config(QTcpSocket *socket);

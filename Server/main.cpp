@@ -7,17 +7,17 @@
 
 int main(int argc, char* argv[]) {
     QCoreApplication a(argc, argv);
-
+  
     Config config{"./config.json"};
     config.Load();
 
-    server s{config.GetSettings()};  // Создаем объект сервера
+    server server{config.GetSettings()};
 
-    Sending sendObj(&s);
+    Sending sendObj(&server);
 
     sendObj.start();
 
-    s.setSending(sendObj);
+    server.setSending(sendObj);
 
     return a.exec();
 }

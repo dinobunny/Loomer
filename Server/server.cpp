@@ -8,6 +8,8 @@
 #include "enums.h"
 #include "Config.hpp"
 #include "m_pack.h"
+#include "cliendatabase.h"
+
 
 #include <QFile>
 #include <QJsonDocument>
@@ -20,6 +22,8 @@
 
 
 QList<QTcpSocket *> server::Sockets;
+
+
 QMutex server::mutex;
 
 server::server(const Config::Settings& aSettings) {
@@ -61,7 +65,7 @@ void server::incomingConnection(qintptr socketDescriptor) {
             emit disconnectedClient(socketDescriptor, IP);
         });
 
-        emit newClientConnected(socket, Sockets);
+        // emit newClientConnected(socket, Sockets);
     }
 }
 
@@ -71,6 +75,7 @@ void server::slotsReadyRead() {
         M_pack m_pack;
         qInfo() << "Reading data...";
         QString str = m_pack.unpack(socket->readAll());
+        qInfo() << str;
 
         QString Identifier = str.left(1);
         QStringList parts = str.split(",");
@@ -99,7 +104,32 @@ void server::slotsReadyRead() {
             out << message;
             emit sendingMesage(RESIVER, message);
         }
+        else if(messageType == LOG){
 
+            ClienDataBase clientDB;
+            QString desckriptor = clientDB.LogIn(parts[1], parts[2]);
+
+            QString message = QString("%1,%2")
+                                  .arg(LOGIN_SEC)
+                                  .arg(socket->socketDescriptor());
+
+
+            qDebug() << "New desk: " << socket->socketDescriptor();
+
+            emit sendingMesage(socket, message);
+        }
+        else if(messageType == SIGN){
+
+            ClienDataBase clientDB;
+            bool desckriptor = clientDB.SingUp(parts[1], parts[2], socket);
+
+            QString message = QString("%1,%2")
+                                  .arg(SIGN_SEC)
+                                  .arg(desckriptor);
+        }
+        else if(messageType == CLIENT_READY_TO_WORCK){
+            emit newClientConnected(socket, Sockets);
+        }
     }
 }
 
@@ -119,17 +149,5 @@ void Loger::myLogMessageHandler(const QtMsgType type, const QMessageLogContext& 
 }
 
 
- QString M_pack::unpack(QByteArray rawData) {
-     msgpack::object_handle oh = msgpack::unpack(rawData.constData(), rawData.size());
-     msgpack::object obj = oh.get();
-     QString data = QString::fromStdString(obj.as<std::string>());
-     return data;
- }
 
- std::string M_pack::puck(QString rawData){
-     std::string msg = rawData.toStdString();
-     msgpack::sbuffer buffer;
-     msgpack::pack(buffer, msg);
-    return std::string(buffer.data(), buffer.size());
- }
 
