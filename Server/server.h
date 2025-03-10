@@ -1,11 +1,11 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "qjsonobject.h"
 #include "qmutex.h"
 #include <QList>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include "Config.hpp"
 
 class Sending;
 
@@ -13,7 +13,7 @@ class server : public QTcpServer {
     Q_OBJECT
 
 public:
-    server();
+    server(const Config::Settings& aSettings);
     void setSending(Sending &sending);
 
 protected:
