@@ -24,6 +24,7 @@ private slots:
 
 public:
     static QList<QTcpSocket *> Sockets;
+    static QList<QTcpSocket *> TempSockets;
 private:
     static QMutex mutex;
 
@@ -35,14 +36,6 @@ signals:
     void newClientConnected(QTcpSocket *socet, QList<QTcpSocket *> &Sockets);
     void disconnectedClient(qintptr socet, QString IP);
     void sendingMesage(QTcpSocket *socket, const QString &message);
-};
-
-
-
-class Loger{
-public:
-    static void myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg);
-
 };
 
 #endif // SERVER_H

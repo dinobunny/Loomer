@@ -7,8 +7,6 @@
 #include "sending.h"
 #include "enums.h"
 
-#include "m_pack.h"
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
 #pragma GCC diagnostic ignored "-Wfloat-equal"
@@ -16,7 +14,7 @@
 #pragma GCC diagnostic ignored "-Wswitch-default"
 #pragma GCC diagnostic ignored "-Wshadow"
 
-#include <msgpack.hpp>
+#include "Mpack.hpp"
 
 #pragma GCC diagnostic pop
 
@@ -31,11 +29,11 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
     Sockets = Sockets_reciverd;
 
     // Отправляем идентификатор новому клиенту
-    QString MyIdentifier = String_to_Send(QString::number(ID_MY)
-                                          ,socket->peerAddress().toString()
-                                          ,QString::number(socket->socketDescriptor()));
+    // QString MyIdentifier = String_to_Send(QString::number(ID_MY)
+    //                                       ,socket->peerAddress().toString()
+    //                                       ,QString::number(socket->socketDescriptor()));
 
-    sendToSocket(socket, MyIdentifier);
+    // sendToSocket(socket, MyIdentifier);
 
     QThread::msleep(100);
 
@@ -97,17 +95,16 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
         return;
     }
 
-    M_pack m_pack;
-    socket->write(m_pack.puck(message).data());
+    socket->write(Mpack::puck(message).data());
     socket->flush();
 
     qInfo()<<"mesage" << message;
 
 
-    if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
-        qWarning() << "Error waiting for bytes to be written:"
-                   << socket->errorString();
-    }
+    // if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
+    //     qWarning() << "Error waiting for bytes to be written:"
+    //                << socket->errorString();
+    // }
 
 }
 

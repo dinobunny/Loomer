@@ -4,7 +4,7 @@ project(ClientDesktop LANGUAGES CXX)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
-file(GLOB_RECURSE Client_SRC CONFIGURE_DEPENDS "*.h" "*.hpp" "*.cpp" "*.qrc")
+file(GLOB_RECURSE Client_SRC CONFIGURE_DEPENDS "*.h" "*.hpp" "*.cpp" "*.ui")
 
 qt_add_executable(ClientDesktop
     ${Client_SRC}
@@ -14,7 +14,7 @@ target_link_libraries(ClientDesktop
     PRIVATE
         Qt6::Widgets
         Qt6::Network
-        msgpack-cxx
+        Core
 )
 
 # Устанавливаем путь для конфигурационного файла

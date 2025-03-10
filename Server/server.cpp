@@ -7,14 +7,14 @@
 #include "sending.h"
 #include "enums.h"
 #include "Config.hpp"
-#include "m_pack.h"
+#include "cliendatabase.h"
 
-#include <QFile>
+#include "Mpack.hpp"
+
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QCoreApplication>
-#include <QDir>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
@@ -28,14 +28,11 @@
 #pragma GCC diagnostic pop
 
 QList<QTcpSocket *> server::Sockets;
+
+
 QMutex server::mutex;
 
 server::server(const Config::Settings& aSettings) {
-
-    qInstallMessageHandler(Loger::myLogMessageHandler);
-    // Install custom message pattern
-    qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] [%{line}] [%{file}]: %{message}");
-
     if (this->listen(aSettings.server_channel, aSettings.server_port)) {
         qDebug() << "Server started on port 2323";
     } else {
@@ -69,16 +66,15 @@ void server::incomingConnection(qintptr socketDescriptor) {
             emit disconnectedClient(socketDescriptor, IP);
         });
 
-        emit newClientConnected(socket, Sockets);
+        // emit newClientConnected(socket, Sockets);
     }
 }
 
 void server::slotsReadyRead() {
     QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
     if (socket) {
-        M_pack m_pack;
-        qInfo() << "Reading data...";
-        QString str = m_pack.unpack(socket->readAll());
+        QString str = Mpack::unpack(socket->readAll());
+        qInfo() << "Reading data..." << str;
 
         QString Identifier = str.left(1);
         QStringList parts = str.split(",");
@@ -107,37 +103,31 @@ void server::slotsReadyRead() {
             out << message;
             emit sendingMesage(RESIVER, message);
         }
+        else if(messageType == LOG){
 
+            ClienDataBase clientDB;
+            QString desckriptor = clientDB.LogIn(parts[1], parts[2]);
+
+            QString message = QString("%1,%2")
+                                  .arg(LOGIN_SEC)
+                                  .arg(socket->socketDescriptor());
+
+
+            qDebug() << "New desk: " << socket->socketDescriptor();
+
+            emit sendingMesage(socket, message);
+        }
+        else if(messageType == SIGN){
+
+            ClienDataBase clientDB;
+            bool desckriptor = clientDB.SingUp(parts[1], parts[2], socket);
+
+            QString message = QString("%1,%2")
+                                  .arg(SIGN_SEC)
+                                  .arg(desckriptor);
+        }
+        else if(messageType == CLIENT_READY_TO_WORCK){
+            emit newClientConnected(socket, Sockets);
+        }
     }
 }
-
-void Loger::myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg){
-     QString formattedMsg = qFormatLogMessage(type, context, msg) + "\n";
-
-     // Записываем в файл
-     QFile logFile("app.log");
-     if (logFile.open(QIODevice::WriteOnly | QIODevice::Append))
-     {
-         logFile.write(qUtf8Printable(formattedMsg));
-     }
-
-     // Выводим в консоль
-     fprintf(stderr, "%s", qUtf8Printable(formattedMsg));
-     fflush(stderr);
-}
-
-
- QString M_pack::unpack(QByteArray rawData) {
-     msgpack::object_handle oh = msgpack::unpack(rawData.constData(), rawData.size());
-     msgpack::object obj = oh.get();
-     QString data = QString::fromStdString(obj.as<std::string>());
-     return data;
- }
-
- std::string M_pack::puck(QString rawData){
-     std::string msg = rawData.toStdString();
-     msgpack::sbuffer buffer;
-     msgpack::pack(buffer, msg);
-    return std::string(buffer.data(), buffer.size());
- }
-

@@ -1,19 +1,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "config.h"
-#include "m_pack.h"
+
+#include "Mpack.hpp"
+
 #include "customwidgetitem.h"
 #include "getpath.h"
+#include "UserData.h"
 
 #include <QListWidget>
 #include <QStringBuilder>
 #include <QDir>
 #include <QTimer>
 
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
@@ -28,22 +27,34 @@
 
 #include "enums.h"
 
-
 Config::Settings Config::settings;
-
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
+
+    UserData& userdata = UserData::getInstance();
+
+    qDebug() << "User name:" << userdata.name;
+
+    this->socket = userdata.getSocket();
+
+    qDebug()<<"Socket on MianWind" << socket << "desck" << socket->socketDescriptor();
+
+    qDebug() << "resived" << userdata.desck;
+
+    MySocket = userdata.desck;
+
+
     ui->setupUi(this);
     this->setStyleSheet(Style_Sheete());
+
+    setWindowTitle(MySocket + " / " + userdata.name);
 
     QIcon buton_icon("./images/send.png");
     ui->pushButton->setIcon(buton_icon);
 
     ui->listWidget_2->setSpacing(7);
 
-    socket = new QTcpSocket(this);
 
     Config config;
     config.Read();
@@ -53,6 +64,12 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << QCoreApplication::applicationDirPath();
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
+
+    QString message = QString("%1,%2")
+                          .arg(CLIENT_READY_TO_WORCK)
+                          .arg(MySocket);
+
+    SendToServer(message);
 
 }
 
@@ -64,11 +81,11 @@ void MainWindow::closeEvent(QCloseEvent *event){
 }
 
 void MainWindow::setupConnection(){
-    connect(socket, &QTcpSocket::connected, this, &MainWindow::onConnected);
-    connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::onError);
-    connect(socket, &QTcpSocket::disconnected, this, &MainWindow::onDisconnected);
+    // connect(socket, &QTcpSocket::connected, this, &MainWindow::onConnected);
+    // connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::onError);
+    // connect(socket, &QTcpSocket::disconnected, this, &MainWindow::onDisconnected);
 
-    socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
+    // socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
 
 }
 
@@ -99,8 +116,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::slotReadyRead() {
-    M_pack msg_p;
-    QString str = msg_p.unpack(socket->readAll());
+    const QString str = Mpack::unpack(socket->readAll());
     QStringList parts = str.split(",");
     int messType = parts[0].toInt();
 
@@ -108,7 +124,7 @@ void MainWindow::slotReadyRead() {
 
         case ID_MY: // my_identifier
         {
-            MySocket = parts[2];
+            // MySocket = parts[2];
             QString num = parts[2];
             setWindowTitle(num);
             qDebug() << "My socket" << MySocket;
@@ -163,8 +179,7 @@ void MainWindow::slotReadyRead() {
 
 void MainWindow::SendToServer(const QString &str) {
     if (socket->state() == QAbstractSocket::ConnectedState) {
-        M_pack m_pack;
-        socket->write(m_pack.puck(str).data());
+        socket->write(Mpack::puck(str).data());
         qDebug() << socket;
     } else {
         qDebug() << "Socket not connected";
@@ -173,6 +188,8 @@ void MainWindow::SendToServer(const QString &str) {
 
 void MainWindow::on_lineEdit_returnPressed() {
     if(!Interlocutor.isEmpty() && ui->lineEdit->text() != QString()){
+    // UserData& userdata = UserData::getInstance();
+
     QString message = QString("%1,%2,%3,%4")
     .arg(MESAGE)
         .arg(Interlocutor)
@@ -266,49 +283,4 @@ QString MainWindow::Style_Sheete() {
     else qDebug() << "Style File not open";
 
     return res;
-
 }
-
-void Config::Read() {
-    QFile file("config_client.json");
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Error open config";
-        return;
-    }
-
-    QByteArray data = file.readAll();
-    file.close();
-
-    // Парсим JSON
-    QJsonDocument config_json = QJsonDocument::fromJson(data);
-
-    if (config_json.isNull()) {
-        qDebug() << "Error worck with config";
-        return;
-    }
-
-    QJsonObject config_obj = config_json.object();
-    const QJsonObject objectSettings = config_obj.value("Settings").toObject();
-
-    Config::settings.server_ip = objectSettings.value("server-ip").toString();
-    Config::settings.server_port = static_cast<qint16>(objectSettings.value("server-port").toInt());
-
-}
-
-QString M_pack::unpack(QByteArray rawData) {
-
-    msgpack::object_handle oh = msgpack::unpack(rawData.constData(), rawData.size());
-    msgpack::object obj = oh.get();
-    QString data = QString::fromStdString(obj.as<std::string>());
-    return data;
-}
-
-std::string M_pack::puck(QString rawData){
-
-    std::string msg = rawData.toStdString();
-    msgpack::sbuffer buffer;
-    msgpack::pack(buffer, msg);
-    return std::string(buffer.data(), buffer.size());
-}
-
-
