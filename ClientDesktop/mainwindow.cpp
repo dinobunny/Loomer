@@ -58,6 +58,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(socket, &QTcpSocket::readyRead, this, &MainWindow::slotReadyRead);
 
+    QString message = QString("%1,%2")
+                          .arg(CLIENT_READY_TO_WORCK)
+                          .arg(MySocket);
+
+    SendToServer(message);
 
 }
 

@@ -72,7 +72,7 @@ void server::incomingConnection(qintptr socketDescriptor) {
             emit disconnectedClient(socketDescriptor, IP);
         });
 
-        emit newClientConnected(socket, Sockets);
+        // emit newClientConnected(socket, Sockets);
     }
 }
 
@@ -111,7 +111,6 @@ void server::slotsReadyRead() {
             out << message;
             emit sendingMesage(RESIVER, message);
         }
-
         else if(messageType == LOG){
 
             ClienDataBase clientDB;
@@ -126,8 +125,6 @@ void server::slotsReadyRead() {
 
             emit sendingMesage(socket, message);
         }
-
-
         else if(messageType == SIGN){
 
             ClienDataBase clientDB;
@@ -136,8 +133,9 @@ void server::slotsReadyRead() {
             QString message = QString("%1,%2")
                                   .arg(SIGN_SEC)
                                   .arg(desckriptor);
-
-            // emit sendingMesage(socket, message);
+        }
+        else if(messageType == CLIENT_READY_TO_WORCK){
+            emit newClientConnected(socket, Sockets);
         }
     }
 }

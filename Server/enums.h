@@ -12,7 +12,8 @@ enum MesageIdentifiers {
     LOGIN_SEC  = 8,
     LOGIN_FAIL = 9,
     SIGN_SEC   = 10,
-    SIGN_FAIL  = 11
+    SIGN_FAIL  = 11,
+    CLIENT_READY_TO_WORCK = 12
 
 };
 

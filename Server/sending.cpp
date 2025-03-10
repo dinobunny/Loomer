@@ -21,11 +21,11 @@ void Sending::Get_New_Client(QTcpSocket *socket, QList<QTcpSocket *> Sockets_rec
     Sockets = Sockets_reciverd;
 
     // Отправляем идентификатор новому клиенту
-    QString MyIdentifier = String_to_Send(QString::number(ID_MY)
-                                          ,socket->peerAddress().toString()
-                                          ,QString::number(socket->socketDescriptor()));
+    // QString MyIdentifier = String_to_Send(QString::number(ID_MY)
+    //                                       ,socket->peerAddress().toString()
+    //                                       ,QString::number(socket->socketDescriptor()));
 
-    sendToSocket(socket, MyIdentifier);
+    // sendToSocket(socket, MyIdentifier);
 
     QThread::msleep(100);
 
