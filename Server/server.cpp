@@ -16,6 +16,17 @@
 #include <QJsonValue>
 #include <QCoreApplication>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+#pragma GCC diagnostic ignored "-Wswitch-default"
+#pragma GCC diagnostic ignored "-Wshadow"
+
+#include <msgpack.hpp>
+
+#pragma GCC diagnostic pop
+
 QList<QTcpSocket *> server::Sockets;
 
 
