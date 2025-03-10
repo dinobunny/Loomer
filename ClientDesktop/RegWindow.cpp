@@ -1,5 +1,4 @@
 #include "RegWindow.h"
-#include "m_pack.h"
 #include "ui_RegWindow.h"
 #include "UserData.h"
 #include "enums.h"
@@ -15,6 +14,7 @@ UserData& userData = UserData::getInstance();
 RegWindow::RegWindow(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::regwindow)
+    , serverConnector(new ServerConnector(nullptr, this))
 
 {
 
@@ -27,7 +27,11 @@ RegWindow::RegWindow(QWidget *parent)
 
     StartUpWindow();
 
-    serverConnector.ConnectToServer();
+    serverConnector->ConnectToServer();
+    connect(this, &RegWindow::CloseWindow, this,[this](){
+        userData.mainWindStarted = true;
+        this->close();
+    });
 
 
 }
@@ -111,16 +115,16 @@ void RegWindow::on_pushButton_end_clicked()
 
     if(userData.status == RegWind::LOG) {
         STATUS = LOG;
+        serverConnector->SendMyData(STATUS);
     }
     else if (userData.status == RegWind::SIGN) {
         STATUS = SIGN;
     }
 
-    serverConnector.SendMyData(STATUS);
 
-    if (userData.getSocket() != nullptr){
-        this->close();
-    }
+    // if (userData.getSocket() != nullptr){
+    //     this->close();
+    // }
 
 }
 

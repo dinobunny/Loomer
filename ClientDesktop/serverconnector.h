@@ -1,23 +1,26 @@
 #ifndef SERVERCONNECTOR_H
 #define SERVERCONNECTOR_H
 
-#include "UserData.h"
 #include <QString>
 #include <QObject>
 #include <QTcpSocket>
+
+class RegWindow;
 
 class ServerConnector : public QObject
 {
     Q_OBJECT  // Убираем точку с запятой
 
 public:
-    explicit ServerConnector(QObject* parent = nullptr);
+    explicit ServerConnector(QObject* parent = nullptr, RegWindow *rWindow = nullptr);
 
     void ConnectToServer();
     void SendMyData(int status);
 
 private:
     QTcpSocket *socket;
+    RegWindow *regWind;
+
 
 
 signals:

@@ -9,17 +9,19 @@ int main(int argc, char *argv[]) {
     // Инициализируем синглтон
     UserData& userdata = UserData::getInstance();  // Получаем экземпляр синглтона
 
-    RegWindow regwindow;
-    regwindow.show();
+    RegWindow* regwindow = new RegWindow();  // Создаем окно регистрации динамически
+    regwindow->show();
 
-    int regwindresult = app.exec(); // Обтимизировать
+    int regwindresult = app.exec(); // Ожидаем, что вернется результат после закрытия окна регистрации
 
+    // Закрываем и удаляем окно регистрации, если оно закрыто с результатом 0
     if (regwindresult == 0) {
-        MainWindow mainwindow;
+        delete regwindow;  // Удаляем объект окна регистрации
+        MainWindow mainwindow;  // Создаем и показываем основное окно
         mainwindow.show();
-
         return app.exec();
     }
 
+    delete regwindow;  // Если регистрация не прошла, удаляем окно регистрации
     return regwindresult;
 }

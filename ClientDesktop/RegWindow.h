@@ -2,9 +2,11 @@
 #define REGWINDOW_H
 
 #include <QDialog>
-#include "mainwindow.h"
+
 
 class MainWindow;
+
+class ServerConnector;
 
 namespace Ui {
 class regwindow;
@@ -29,9 +31,15 @@ private slots:
 
 private:
     Ui::regwindow *ui;
+    ServerConnector *serverConnector;
 
     void ShowMainForm();
     void StartUpWindow();
+
+signals:
+    void CloseWindow();
+
+
 
 
 };

@@ -1,4 +1,5 @@
 #include "ServerConnector.h"
+#include "RegWindow.h"
 #include "UserData.h"
 #include "config.h"
 #include "m_pack.h"
@@ -12,7 +13,10 @@ M_pack m_pack;
 
 extern UserData &userData ;
 
-ServerConnector::ServerConnector(QObject *parent) : QObject(parent), socket(new QTcpSocket(this)) {}
+ServerConnector::ServerConnector(QObject *parent, RegWindow *rWindow) :
+    QObject(parent),
+    socket(new QTcpSocket(this)),
+    regWind(rWindow) {}
 
 void ServerConnector::ConnectToServer()
 {
@@ -24,6 +28,7 @@ void ServerConnector::ConnectToServer()
     }
 
     socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
+    userData.mainWindStarted = false;
 
     if (!userData.getSocket()) {  // Проверка перед установкой
         userData.setSocket(socket);
@@ -60,7 +65,7 @@ void ServerConnector::slotReadyRead()
 
     UserData& userdata = UserData::getInstance();
 
-    if(userdata.gotlogindata.value() != true){
+    if(userdata.mainWindStarted != true){
         M_pack msg_p;
         QString str = msg_p.unpack(socket->readAll());
         QStringList parts = str.split(",");
@@ -73,7 +78,9 @@ void ServerConnector::slotReadyRead()
             qDebug()<< "Got desk: " << parts[1];
 
             userdata.desck = parts[1];
+
+            emit regWind->CloseWindow();
         }
-        userdata.gotlogindata = true;
+
     }
 }

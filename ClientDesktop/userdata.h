@@ -20,7 +20,7 @@ public:
      QString e_male;
      QString desck;
      RegWind status;
-     std::optional<bool> gotlogindata ;
+     bool mainWindStarted;
 
 
      void setSocket(QTcpSocket* socket) ;
