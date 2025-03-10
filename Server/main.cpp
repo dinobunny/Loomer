@@ -8,13 +8,13 @@
 int main(int argc, char* argv[]) {
     QCoreApplication a(argc, argv);
 
-    server s;  // Создаем объект сервера
+    server server;  // Создаем объект сервера
 
-    Sending sendObj(&s);
+    Sending sendObj(&server);
 
     sendObj.start();
 
-    s.setSending(sendObj);
+    server.setSending(sendObj);
 
 
     return a.exec();

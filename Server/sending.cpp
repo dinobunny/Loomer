@@ -94,10 +94,10 @@ void Sending::sendToSocket(QTcpSocket *socket, const QString &message) {
     qInfo()<<"mesage" << message;
 
 
-    if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
-        qWarning() << "Error waiting for bytes to be written:"
-                   << socket->errorString();
-    }
+    // if (!socket->waitForBytesWritten(5000)) { // Timeout для предотвращения вечного ожидания
+    //     qWarning() << "Error waiting for bytes to be written:"
+    //                << socket->errorString();
+    // }
 
 }
 

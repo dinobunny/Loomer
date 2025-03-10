@@ -4,7 +4,7 @@ project(ClientDesktop LANGUAGES CXX)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
-file(GLOB_RECURSE Client_SRC CONFIGURE_DEPENDS "*.h" "*.hpp" "*.cpp" "*.qrc")
+file(GLOB_RECURSE Client_SRC CONFIGURE_DEPENDS "*.h" "*.hpp" "*.cpp" "*.ui")
 
 qt_add_executable(ClientDesktop
     ${Client_SRC}

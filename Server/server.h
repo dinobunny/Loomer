@@ -24,6 +24,7 @@ private slots:
 
 public:
     static QList<QTcpSocket *> Sockets;
+    static QList<QTcpSocket *> TempSockets;
 private:
     static QMutex mutex;
 
