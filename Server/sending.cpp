@@ -2,7 +2,7 @@
 #include <QMutex>
 #include <QThread>
 #include <QTimer>
-#include <windows.h>
+//#include <windows.h>
 
 #include "sending.h"
 #include "enums.h"

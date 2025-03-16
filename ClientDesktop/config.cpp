@@ -1,34 +1,59 @@
 #include "config.h"
-
-#include <QFile>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QFile>
+#include <QJsonDocument>
+#include <QDebug>
 
 
 void Config::Read() {
-    QFile file("config_client.json");
+    QString filePath = "config_client.json"; // Основний конфіг
+    if (!QFile::exists(filePath)) {
+        filePath = "config_client.toml"; // Якщо JSON немає, шукаємо TOML
+    }
+    if (filePath.endsWith(".json")) {
+        ReadJson(filePath);
+    } else if (filePath.endsWith(".toml")) {
+        ReadToml(filePath);
+    } else {
+        qWarning() << "Unknown config file format!";
+    }
+}
+
+void Config::ReadJson(const QString &filePath) {
+    QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Error open config";
+        qWarning() << "Error opening JSON config:" << filePath;
         return;
     }
 
     QByteArray data = file.readAll();
     file.close();
 
-    // Парсим JSON
-    QJsonDocument config_json = QJsonDocument::fromJson(data);
-
-    if (config_json.isNull()) {
-        qDebug() << "Error worck with config";
+    QJsonDocument configJson = QJsonDocument::fromJson(data);
+    if (configJson.isNull() || !configJson.isObject()) {
+        qWarning() << "Invalid JSON format in config";
         return;
     }
 
-    QJsonObject config_obj = config_json.object();
+    QJsonObject configObj = configJson.object().value("Settings").toObject();
+    settings.server_ip = configObj.value("server-ip").toString();
+    settings.server_port = static_cast<qint16>((configObj.value("server-port").toInt()));
+}
 
-    const auto SettingsObj = config_obj.value("Settings").toObject();
+void Config::ReadToml(const QString &filePath) {
+    try {
+        settings.config_toml = toml::parse_file(filePath.toStdString());
 
-    Config::settings.server_ip = SettingsObj.value("server-ip").toString();
-    Config::settings.server_port = static_cast<qint16>(SettingsObj.value("server-port").toInt());
+        if (auto ip = settings.config_toml["Settings"]["server-ip"].value<std::string>()) {
+            settings.server_ip = QString::fromStdString(*ip);
+        }
 
+        if (auto port = settings.config_toml["Settings"]["server-port"].value<int>()) {
+            settings.server_port = static_cast<qint16>(*port);
+        }
+
+    } catch (const std::exception &e) {
+        qWarning() << "Error parsing TOML:" << e.what();
+    }
 }

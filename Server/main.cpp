@@ -1,10 +1,11 @@
-#include <QCoreApplication>
-
 #include "server.h"
 #include "sending.h"
 #include "Config.hpp"
-
+#include <QCoreApplication>
 #include <QFile>
+#include <iostream>
+#include <QCommandLineParser> // обробка параметрів через QCommandLineParser  щобв у майбутньому було легше додавати нові опції (наприклад, порт).
+
 
 static void myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
@@ -29,15 +30,27 @@ int main(int argc, char* argv[]) {
     // Install custom message pattern
     qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] [%{line}] [%{file}]: %{message}");
 
-    Config config{"./config.json"};
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Server application");
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    QCommandLineOption configOption("config", "Path to config file", "path");
+    parser.addOption(configOption);
+
+    parser.process(a);
+
+    QString configPath = parser.isSet(configOption) ? parser.value(configOption) : "./config_server.json";
+    std::cout << "Using config: " << configPath.toStdString() << std::endl;
+
+    Config config{configPath.toStdString()};
     config.Load();
 
-    server server{config.GetSettings()};
 
+    server server{config.GetSettings()};
     Sending sendObj(&server);
 
     sendObj.start();
-
     server.setSending(sendObj);
 
     return a.exec();

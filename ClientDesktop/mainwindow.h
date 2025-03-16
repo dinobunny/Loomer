@@ -16,7 +16,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 QT_END_NAMESPACE
 
@@ -24,13 +24,13 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(const QString& configPath, QWidget *parent = nullptr);
     ~MainWindow();
     QString Get_Path(Directorys file, Files directory);
     void SendToServer(const QString &str);
 
-private slots:
-    void slotReadyRead();
+    private slots:
+        void slotReadyRead();
     void on_pushButton_clicked();
     void on_lineEdit_returnPressed();
 

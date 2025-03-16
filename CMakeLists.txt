@@ -15,7 +15,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 set(MSGPACK_USE_BOOST OFF) #Disable use boost
+FetchContent_Declare(
+        tomlplusplus
+        GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+        GIT_TAG         v3.4.0
+)
+FetchContent_MakeAvailable(tomlplusplus)
 
+FetchContent_Declare(
+        json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
 add_compile_options(
     -fno-extended-identifiers
     -fstrict-aliasing

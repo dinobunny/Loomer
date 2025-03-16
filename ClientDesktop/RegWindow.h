@@ -9,7 +9,7 @@ class MainWindow;
 class ServerConnector;
 
 namespace Ui {
-class regwindow;
+    class regwindow;
 }
 
 class RegWindow : public QDialog
@@ -20,11 +20,11 @@ public:
 
     QString Style_Sheete();
 
-    explicit RegWindow(QWidget *parent = nullptr);
+    explicit RegWindow(const QString& configPath, QWidget *parent = nullptr);
     ~RegWindow();
 
-private slots:
-    void on_pushButton_Log_in_clicked();
+    private slots:
+        void on_pushButton_Log_in_clicked();
     void on_pushButton_Sing_up_clicked();
     void on_pushButton_end_clicked();
     void on_pushButton_return_clicked();
@@ -36,8 +36,8 @@ private:
     void ShowMainForm();
     void StartUpWindow();
 
-signals:
-    void CloseWindow();
+    signals:
+        void CloseWindow();
 
 
 

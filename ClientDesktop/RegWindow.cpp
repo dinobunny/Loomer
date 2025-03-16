@@ -1,8 +1,8 @@
 #include "RegWindow.h"
-#include "ui_RegWindow.h"
-#include "UserData.h"
+#include "ui_regwindow.h"
+#include "userdata.h"
 #include "enums.h"
-#include "ServerConnector.h"
+#include "serverconnector.h"
 
 #include<QFile>
 
@@ -10,13 +10,13 @@
 ServerConnector  serverConnector;
 UserData& userData = UserData::getInstance();
 
-
-RegWindow::RegWindow(QWidget *parent)
+RegWindow::RegWindow(const QString& configPath, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::regwindow)
     , serverConnector(new ServerConnector(nullptr, this))
 
 {
+    qDebug() << "RegWindow initialized with config: " << configPath;
 
     ui->setupUi(this);
     this->setStyleSheet(Style_Sheete());

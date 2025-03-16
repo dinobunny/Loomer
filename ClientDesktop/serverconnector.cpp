@@ -1,10 +1,10 @@
-#include "ServerConnector.h"
+#include "serverconnector.h"
 #include "RegWindow.h"
-#include "UserData.h"
+#include "userdata.h"
 #include "config.h"
 
 #include <QTcpSocket>
-#include <winsock.h>
+//#include <winsock.h>
 #include <QTimer>
 #include "Mpack.hpp"
 

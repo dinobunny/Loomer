@@ -1,12 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "config.h"
+#include <QCommandLineParser> // обробка параметрів через QCommandLineParser  щобв у майбутньому було легше додавати нові опції (наприклад, порт).
+#include <iostream>
 
 #include "Mpack.hpp"
 
 #include "customwidgetitem.h"
 #include "getpath.h"
-#include "UserData.h"
+#include "userdata.h"
 
 #include <QListWidget>
 #include <QStringBuilder>
@@ -19,8 +21,10 @@
 
 Config::Settings Config::settings;
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(const QString& configPath, QWidget *parent )
     : QMainWindow(parent), ui(new Ui::MainWindow) {
+
+    qDebug() << "MainWindow initialized with config: " << configPath;
 
     UserData& userdata = UserData::getInstance();
 
@@ -46,10 +50,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->listWidget_2->setSpacing(7);
 
 
-    Config config;
-    config.Read();
-
-    setupConnection();
 
     qDebug() << QCoreApplication::applicationDirPath();
 
@@ -71,11 +71,11 @@ void MainWindow::closeEvent(QCloseEvent *event){
 }
 
 void MainWindow::setupConnection(){
-    // connect(socket, &QTcpSocket::connected, this, &MainWindow::onConnected);
-    // connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::onError);
-    // connect(socket, &QTcpSocket::disconnected, this, &MainWindow::onDisconnected);
+     connect(socket, &QTcpSocket::connected, this, &MainWindow::onConnected);
+     connect(socket, &QTcpSocket::errorOccurred, this, &MainWindow::onError);
+     connect(socket, &QTcpSocket::disconnected, this, &MainWindow::onDisconnected);
 
-    // socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
+     socket->connectToHost(Config::settings.server_ip, Config::settings.server_port);
 
 }
 
